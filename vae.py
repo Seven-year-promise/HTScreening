@@ -36,22 +36,29 @@ class VAE(nn.Module):
         sample = mu + (eps * std)  # sampling
         return sample
 
+    def encoder(self, x):
+        # encoding
+        x = nn.functional.relu(self.enc1(x))
+        x = nn.functional.relu(self.enc2(x))
+        x = nn.functional.relu(self.enc3(x))
+        x = nn.functional.relu(self.enc4(x))
+        # get `mu` and `log_var`
+        mu = self.fc_mu(x)
+        log_var = self.fc_log_var(x)
+
+        return mu, log_var
+
     def forward(self, x):
         # encoding
         x = nn.functional.relu(self.enc1(x))
         x = nn.functional.relu(self.enc2(x))
         x = nn.functional.relu(self.enc3(x))
         x = nn.functional.relu(self.enc4(x))
-        batch, _, _, _ = x.shape
-        x = nn.functional.adaptive_avg_pool2d(x, 1).reshape(batch, -1)
-        hidden = self.fc1(x)
         # get `mu` and `log_var`
-        mu = self.fc_mu(hidden)
-        log_var = self.fc_log_var(hidden)
+        mu = self.fc_mu(x)
+        log_var = self.fc_log_var(x)
         # get the latent vector through reparameterization
         z = self.reparameterize(mu, log_var)
-        z = self.fc2(z)
-        z = z.view(-1, 64, 1, 1)
 
         # decoding
         x = nn.functional.relu(self.dec1(z))

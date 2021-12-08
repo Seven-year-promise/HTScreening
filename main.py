@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import visdom
-from vae_plots import test_tsne, plot_llk, plot_vae_samples, save_images, save_loss
+from vae_plots import plot_distribution, save_loss
 import torchvision
 from torchvision import datasets, transforms
 import pyro
@@ -90,7 +90,7 @@ def main(args):
             save_loss(np.array(train_recon_elbo), np.array(train_kld_elbo),
                       np.array(test_recon_elbo), np.array(test_kld_elbo), save_path=args.main_path)
 
-            #test_tsne(vae=model, test_loader=train_loader, save_path=args.main_path)
+            plot_distribution(vae=model, test_loader=train_loader, batch_size=batch_size, save_path=args.main_path)
 
     return model
 
