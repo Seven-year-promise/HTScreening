@@ -28,7 +28,7 @@ def main(args):
 
     batch_size = 50
 
-    trainset = DataSet()
+    trainset = DataSet(path="./data/data_14features/")
     train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                                shuffle=True, num_workers=2)
 

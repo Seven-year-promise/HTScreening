@@ -17,9 +17,13 @@ class DataSet(data.Dataset):
         data_labels = []
         data_files = os.listdir(path)
         for d_f in data_files:
-            read_lines = csv.reader(path + d_f)
-            for l in read_lines:
-                data_files.append(l)
+            with open(path + d_f, newline='') as csv_f:
+                read_lines = csv.reader(csv_f, delimiter = ",")
+                for j, l in enumerate(read_lines):
+                    if j > 0:
+                        data_line = [float(i) for i in l]
+                        data_list.append(data_line)
+                        print(data_line)
 
         self.data = data_list
         self.labels = data_labels
