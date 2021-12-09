@@ -13,31 +13,74 @@ import matplotlib.pyplot as plt
 
 class DataSet(data.Dataset):
     def __init__(self, path, label_path):
-        # read the label file
+        # read the label file, total: 10 classes
+        label_dict = {}
         with open(label_path, "r") as l_f:
-            dict_reader = csv.DictReader(l_f)
-            ordered_dict_from_csv = list(dict_reader)[0]
-            dict_from_csv = dict(ordered_dict_from_csv)
-            print(dict_from_csv)
+            read_label_lines = csv.reader(l_f, delimiter = ",")
+            for j, l in enumerate(read_label_lines):
+                if j > 0:
+                    label_dict[l[0]] = int(l[-1])
         data_list = []
         data_labels = []
         data_files = os.listdir(path)
         for d_f in data_files:
+            d_f_name = d_f[:-4]
+            if d_f_name[:2] == "WT":
+                lb = 0
+            else:
+                lb = label_dict[d_f_name]
+            #print(d_f_name, lb)
             with open(path + d_f, newline='') as csv_f:
                 read_lines = csv.reader(csv_f, delimiter = ",")
                 for j, l in enumerate(read_lines):
                     if j > 0:
                         data_line = [float(i) for i in l]
                         data_list.append(data_line)
-                        print(data_line)
+                        data_labels.append(lb)
+                        #print(data_line)
 
-        self.data = data_list
+        data_list = np.array(data_list)
+        max_v = np.max(data_list, 0)
+        min_v = np.min(data_list, 0)
+        print(max_v, min_v)
+        data_list = (data_list - min_v) / (max_v - min_v)
+        self.data = data_list.tolist()
+
         self.labels = data_labels
+        print("the number of data:", len(data_labels))
 
     def __getitem__(self, index):
 
-        d = torch.from_numpy(self.data[index]).float()
-        l = torch.from_numpy(self.labels[index]).long()
+        d = torch.from_numpy(np.array(self.data[index])).float()
+        l = torch.from_numpy(np.array(self.labels[index])).long()
+        return d, l
+
+    def __len__(self):
+        return len(self.data)
+
+
+class DataSet2(data.Dataset):
+    def __init__(self, path):
+        # read the label file, total: 10 classes
+        data_list = []
+        data_labels = []
+        with open(path, "r") as l_f:
+            read_label_lines = csv.reader(l_f, delimiter = ",")
+            for j, l in enumerate(read_label_lines):
+                if j > 0:
+                    data_line = [float(i) for i in l[1:-2]]
+                    data_list.append(data_line)
+                    data_labels.append(int(l[-1]))
+        print(data_list, data_labels)
+
+        self.data = data_list
+        self.labels = data_labels
+        print("the number of data:", len(data_labels))
+
+    def __getitem__(self, index):
+
+        d = torch.from_numpy(np.array(self.data[index])).float()
+        l = torch.from_numpy(np.array(self.labels[index])).long()
         return d, l
 
     def __len__(self):

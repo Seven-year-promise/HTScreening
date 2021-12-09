@@ -9,8 +9,8 @@ from torchvision import datasets, transforms
 import pyro
 import matplotlib.pyplot as plt
 
-from vae import VAE
-from data_loader import DataSet
+from vae_rbf import VAE
+from data_loader import DataSet, DataSet2
 
 
 criterion = nn.BCELoss(reduction='sum')
@@ -26,14 +26,16 @@ def main(args):
     # clear param store
     pyro.clear_param_store()
 
-    batch_size = 50
+    batch_size = 1000
 
-    trainset = DataSet(path="./data/data_14features/")
+    trainset = DataSet(path="./data/data_14features/", label_path="./data/data_median_all_label.csv")
+    #trainset = DataSet2(path="./data/data_median_all_label.csv")
     train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                                shuffle=True, num_workers=2)
-
+    test_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
+                                               shuffle=False, num_workers=2)
     # setup the VAE
-    model = VAE(input_dim=14, h_dim=7, z_dim=2)
+    model = VAE(input_dim=14, h_dim=500, z_dim=1000)
     if args.cuda:
         model.cuda()
 
@@ -56,6 +58,8 @@ def main(args):
         # by the data loader
         for x, _ in train_loader:
             # if on GPU put mini-batch into CUDA memory
+            if x.size(0) != batch_size:
+                continue
             if args.cuda:
                 x = x.cuda()
             # do ELBO gradient and accumulate loss
@@ -77,11 +81,11 @@ def main(args):
         train_recon_elbo.append(epoch_recon_loss / normalizer_train)
         train_kld_elbo.append(epoch_kld_loss / normalizer_train)
         print(
-            "[epoch %03d]  average training recon loss: %.4f"
+            "[epoch %03d]  average training recon loss: %f"
             % (epoch, epoch_recon_loss / normalizer_train)
         )
         print(
-            " \b[epoch %03d]  average training kld loss: %.4f"
+            " \b[epoch %03d]  average training kld loss: %f"
             % (epoch, epoch_kld_loss / normalizer_train)
         )
 
@@ -90,7 +94,7 @@ def main(args):
             save_loss(np.array(train_recon_elbo), np.array(train_kld_elbo),
                       np.array(test_recon_elbo), np.array(test_kld_elbo), save_path=args.main_path)
 
-            plot_distribution(vae=model, test_loader=train_loader, batch_size=batch_size, save_path=args.main_path)
+            plot_distribution(vae=model, test_loader=test_loader, batch_size=batch_size, args=args, save_path=args.main_path)
 
     return model
 

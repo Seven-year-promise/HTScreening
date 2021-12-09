@@ -33,7 +33,8 @@ class VAE(nn.Module):
         """
         std = torch.exp(0.5 * log_var)  # standard deviation
         eps = torch.randn_like(std)  # `randn_like` as we need the same size
-        sample = mu + (eps * std)  # sampling
+        k_eps = self.rbf(eps, eps)
+        sample = mu + (k_eps * std)  # sampling
         return sample
 
     def encoder(self, x):
