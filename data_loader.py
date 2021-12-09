@@ -12,7 +12,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class DataSet(data.Dataset):
-    def __init__(self, path):
+    def __init__(self, path, label_path):
+        with open(label_path, "r") as l_f:
+            dict_reader = csv.DictReader(l_f)
+            ordered_dict_from_csv = list(dict_reader)[0]
+            dict_from_csv = dict(ordered_dict_from_csv)
+            print(dict_from_csv)
         data_list = []
         data_labels = []
         data_files = os.listdir(path)
