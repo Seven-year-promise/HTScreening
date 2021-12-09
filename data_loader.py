@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 
 class DataSet(data.Dataset):
     def __init__(self, path, label_path):
+        # read the label file
         with open(label_path, "r") as l_f:
             dict_reader = csv.DictReader(l_f)
             ordered_dict_from_csv = list(dict_reader)[0]
