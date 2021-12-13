@@ -9,18 +9,21 @@ from torchvision import datasets, transforms
 import pyro
 import matplotlib.pyplot as plt
 
-from vae import VAE
+from vae import VAE_class
 from data_loader import DataSet, DataSet2
 
 
 criterion = nn.BCELoss(reduction='sum')
 MSE = nn.MSELoss(reduction="sum")
+cross_entropy = nn.CrossEntropyLoss()
 def VaeLoss(recon_x,x,mu,logvar):
     MSE_loss = MSE(recon_x, x)#/10000000
     KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())# * 100.
     loss = MSE_loss+KLD
     return loss, MSE_loss, KLD
 
+def classifier_loss(output, label):
+    return cross_entropy(output, label)
 
 def main(args):
     # clear param store
@@ -35,7 +38,7 @@ def main(args):
     test_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                                shuffle=False, num_workers=2)
     # setup the VAE
-    model = VAE(input_dim=14, h_dim=500, z_dim=1000)
+    model = VAE_class(input_dim=14, h_dim=1000, z_dim=2000, classes=10)
     if args.cuda:
         model.cuda()
 
@@ -47,6 +50,7 @@ def main(args):
 
     train_recon_elbo = []
     train_kld_elbo = []
+    train_class_elbo = []
     test_recon_elbo = []
     test_kld_elbo = []
     # training loop
@@ -54,25 +58,31 @@ def main(args):
         # initialize loss accumulator
         epoch_recon_loss = 0.0
         epoch_kld_loss = 0.0
+        epoch_class_loss = 0.0
         # do a training epoch over each mini-batch x returned
         # by the data loader
-        for x, _ in train_loader:
+        for x, l in train_loader:
             # if on GPU put mini-batch into CUDA memory
             if x.size(0) != batch_size:
                 continue
             if args.cuda:
                 x = x.cuda()
+                l = l.cuda()
             # do ELBO gradient and accumulate loss
             # x = x.reshape(-1, 1, 28, 28)
             # x_im = x[0, 0, :, :].detach().cpu().numpy()
             # cv2.imshow("im", x_im)
             # cv2.waitKey(0)
             optimizer.zero_grad()
-            m, lvar, recon = model(x)
+            m, lvar, recon, classification = model(x)
             # epoch_loss += svi.step(x)
-            loss, mse_loss, kld_loss = VaeLoss(recon, x, m, lvar)
+            vae_loss, mse_loss, kld_loss = VaeLoss(recon, x, m, lvar)
+            class_loss = classifier_loss(classification, l)
+            class_loss *= 1000
             epoch_recon_loss += mse_loss
             epoch_kld_loss += kld_loss
+            epoch_class_loss += class_loss
+            loss = vae_loss + class_loss
             loss.backward()
             optimizer.step()
 
@@ -85,8 +95,12 @@ def main(args):
             % (epoch, epoch_recon_loss / normalizer_train)
         )
         print(
-            " \b[epoch %03d]  average training kld loss: %f"
+            "\b [epoch %03d]  average training kld loss: %f"
             % (epoch, epoch_kld_loss / normalizer_train)
+        )
+        print(
+            "\b  [epoch %03d]  average training class loss: %f"
+            % (epoch, epoch_class_loss / normalizer_train)
         )
 
         if epoch == args.tsne_iter:
@@ -94,7 +108,7 @@ def main(args):
             save_loss(np.array(train_recon_elbo), np.array(train_kld_elbo),
                       np.array(test_recon_elbo), np.array(test_kld_elbo), save_path=args.main_path)
 
-            plot_distribution(vae=model, test_loader=test_loader, batch_size=batch_size, args=args, save_path=args.main_path)
+            plot_distribution(vae=model, test_loader=test_loader, batch_size=batch_size, z_dim=2000, args=args, save_path=args.main_path)
 
     return model
 
@@ -104,7 +118,7 @@ if __name__ == "__main__":
     # parse command line arguments
     parser = argparse.ArgumentParser(description="parse args")
     parser.add_argument(
-        "-n", "--num-epochs", default=101, type=int, help="number of training epochs"
+        "-n", "--num-epochs", default=10001, type=int, help="number of training epochs"
     )
     parser.add_argument(
         "-data_path",
@@ -115,7 +129,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-tf",
         "--test-frequency",
-        default=100,
+        default=10000,
         type=int,
         help="how often we evaluate the test set",
     )
@@ -138,7 +152,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-i-tsne",
         "--tsne_iter",
-        default=100,
+        default=10000,
         type=int,
         help="epoch when tsne visualization runs",
     )

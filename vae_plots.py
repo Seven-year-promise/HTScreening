@@ -86,7 +86,7 @@ def plot_vae_samples(vae, visdom_session):
             images.append(img)
         vis.images(images, 10, 2)
 
-def plot_distribution(vae=None, test_loader=None, batch_size=10, args=None, save_path="./vae_results/"):
+def plot_distribution(vae=None, test_loader=None, batch_size=10, z_dim=10, args=None, save_path="./vae_results/"):
     """
     This is used to generate a distribution of the samples
     """
@@ -99,7 +99,7 @@ def plot_distribution(vae=None, test_loader=None, batch_size=10, args=None, save
 
     num_data = len(test_loader.dataset)
     print("number of test data: ", num_data)
-    z_loc = np.zeros((num_data, batch_size), np.float)
+    z_loc = np.zeros((num_data, z_dim), np.float)
     classes = np.zeros(num_data, np.int)
     for i, (x, c) in enumerate(test_loader):
         if args.cuda:
