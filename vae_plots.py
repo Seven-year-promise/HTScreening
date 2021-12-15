@@ -86,7 +86,7 @@ def plot_vae_samples(vae, visdom_session):
             images.append(img)
         vis.images(images, 10, 2)
 
-def plot_distribution(vae=None, test_loader=None, batch_size=10, z_dim=10, args=None, save_path="./vae_results/"):
+def plot_distribution(vae=None, test_loader=None, batch_size=None, z_dim=None, args=None, save_path="./vae_results/"):
     """
     This is used to generate a distribution of the samples
     """
@@ -127,6 +127,19 @@ def plot_distribution(vae=None, test_loader=None, batch_size=10, z_dim=10, args=
             plt.title("Latent Variable T-SNE per Class")
             fig.savefig(save_path  + "VAE_embedding_" + str(ic) + ".png")
     #fig.savefig(save_path +  "VAE_embedding.png")
+    #fig.clf()
+    plt.clf()
+    fig = plt.figure()
+    for ic in range(10):
+        #ind_vec = np.zeros_like(classes)
+        #ind_vec[:, ic] = 1
+        ind_class = classes == ic
+        if np.sum(ind_class*1) > 10:
+            color = plt.cm.Set1(ic)
+            plt.scatter(z_embed[ind_class, 0], z_embed[ind_class, 1], s=10, color=color)
+    plt.title("Latent Variable T-SNE per Class")
+            #fig.savefig(save_path  + "VAE_embedding_" + str(ic) + ".png")
+    fig.savefig(save_path +  "VAE_embedding.png")
 
 def test_tsne(vae=None, test_loader=None, save_path="./vae_results/"):
     """
