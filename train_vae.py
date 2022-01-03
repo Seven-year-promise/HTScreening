@@ -9,7 +9,7 @@ from torchvision import datasets, transforms
 import pyro
 import matplotlib.pyplot as plt
 
-from vae_rbf import VAE
+from vae import VAE
 from data_loader import DataSet, DataSet2, RawDataSet, EffectedDataSet
 
 
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     # parse command line arguments
     parser = argparse.ArgumentParser(description="parse args")
     parser.add_argument(
-        "-n", "--num-epochs", default=501, type=int, help="number of training epochs"
+        "-n", "--num-epochs", default=1001, type=int, help="number of training epochs"
     )
     parser.add_argument(
         "-data_path",
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-tf",
         "--test-frequency",
-        default=100,
+        default=1000,
         type=int,
         help="how often we evaluate the test set",
     )
@@ -143,13 +143,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "-i-tsne",
         "--tsne_iter",
-        default=500,
+        default=1000,
         type=int,
         help="epoch when tsne visualization runs",
     )
     parser.add_argument(
         "--main_path",
-        default="./results/raw_data/no_class/",
+        default="./results/effected_data/no_class/vae/",
         help="the path to save",
     )
     args = parser.parse_args()

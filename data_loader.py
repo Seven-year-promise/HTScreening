@@ -13,9 +13,51 @@ import matplotlib.pyplot as plt
 
 CLASSES = {"WT_control": 0,
            "TRPV agonist": 1,
-           "GABAA": 2,
-           "GABAA allosteric antagonist": 3,
-           "GABAA pore blocker": 4}
+           "GABAA allosteric antagonist": 2,
+           "GABAA pore blocker": 3}
+
+RAW_CLASSES = {"WT_control": 0,
+               "GABAA pore blocker": 1,
+               "vesicular ACh transport antagonist": 2,
+               "nAChR orthosteric agonist": 3,
+               "nAChR orthosteric antagonist": 4,
+               "TRPV agonist": 5,
+               "GABAA allosteric antagonist": 6,
+               "RyR agonist": 7,
+               "Na channel": 8,
+               "unknown": 9
+               }
+
+class EffectedDataSetSplited(data.Dataset):
+    def __init__(self, path, label_path):
+        # read the label file, total: 4 classes
+        data_list = []
+        data_labels = []
+        with open(path, newline='') as csv_f:
+            read_lines = csv.reader(csv_f, delimiter=",")
+            for j, l in enumerate(read_lines):
+                data_line = [float(i) for i in l]
+                data_list.append(data_line)
+
+        with open(label_path, newline='') as csv_f:
+            read_lines = csv.reader(csv_f, delimiter=",")
+            for j, l in enumerate(read_lines):
+                data_labels = [int(i) for i in l]
+
+        self.data = data_list
+
+        self.labels = data_labels
+        print("the number of data:", len(data_labels))
+        print("the dimension of data:", len(data_list[0]))
+
+    def __getitem__(self, index):
+
+        d = torch.from_numpy(np.array(self.data[index])).float()
+        l = torch.from_numpy(np.array(self.labels[index])).long()
+        return d, l
+
+    def __len__(self):
+        return len(self.data)
 
 class EffectedDataSet(data.Dataset):
     def __init__(self, path, label_path, input_dimension=568):
@@ -24,12 +66,14 @@ class EffectedDataSet(data.Dataset):
         with open(label_path, "r") as l_f:
             read_label_lines = csv.reader(l_f, delimiter = ",")
             for j, l in enumerate(read_label_lines):
-                compound_name = l.split("_")[0]
+                compound_name = l[0].split("_")[0]
                 action_name = l[-1]
-                if compound_name in label_dict:
-                    continue
-                else:
-                    label_dict[compound_name] = int(CLASSES[action_name])
+                if j > 0:
+                    if compound_name in label_dict:
+                        continue
+                    else:
+                        label_dict[compound_name] = CLASSES[action_name]
+        print("labels: ", label_dict)
         data_list = []
         data_labels = []
         data_files = os.listdir(path)

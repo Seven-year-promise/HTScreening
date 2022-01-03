@@ -1,6 +1,7 @@
 import torch
 import cv2
 import numpy as np
+from data_loader import RAW_CLASSES as CLASSES
 
 def plot_conditional_samples_ssvae(ssvae, visdom_session):
     """
@@ -31,7 +32,7 @@ def save_images(x, recon, epoch, save_path):
         cv2.imwrite(save_path + "test_ori_images/" + str(epoch) + "_" + str(i) + ".jpg", ori_im)
         cv2.imwrite(save_path + "test_recon_images/" + str(epoch) + "_" + str(i) + ".jpg", recon_im)
 
-def save_loss(recon_loss, kld_loss, recon_test_loss, kld_test_loss, save_path="./vae_results/"):
+def save_loss(recon_loss, kld_loss, recon_test_loss, kld_test_loss, class_loss=None, class_test_loss=None, save_path="./vae_results/"):
     import os
 
     with open(os.path.join(save_path, "recon_epoch_loss.txt"), "a+") as f:
@@ -46,6 +47,13 @@ def save_loss(recon_loss, kld_loss, recon_test_loss, kld_test_loss, save_path=".
             f.write("Epoch {}    ave train kld loss: {}    \n".format(i, t_l))
         for i, t_l in enumerate(kld_test_loss):
             f.write("Epoch {}    ave test kld loss: {}    \n".format(i, t_l))
+
+    if class_test_loss is not None and class_loss is not None:
+        with open(os.path.join(save_path, "class_epoch_loss.txt"), "a+") as f:
+            for i, t_l in enumerate(class_loss):
+                f.write("Epoch {}    ave train class loss: {}    \n".format(i, t_l))
+            for i, t_l in enumerate(class_test_loss):
+                f.write("Epoch {}    ave test class loss: {}    \n".format(i, t_l))
 
 def plot_llk(train_elbo, test_elbo, save_path="./vae_results/"):
     import matplotlib.pyplot as plt
@@ -115,31 +123,40 @@ def plot_distribution(vae=None, test_loader=None, batch_size=None, z_dim=None, a
 
     model_tsne = TSNE(n_components=2, random_state=0)
     z_embed = model_tsne.fit_transform(z_loc)
+    def get_key(dict, value):
+        for k, v in dict.items():
+            if v == value:
+                return k
+        return "None"
 
-    for ic in range(10):
+    for ic in range(len(CLASSES)):
         fig = plt.figure()
         #ind_vec = np.zeros_like(classes)
         #ind_vec[:, ic] = 1
+        action_name = get_key(CLASSES, ic)
         ind_class = classes == ic
-        if np.sum(ind_class*1) > 10:
+        if np.sum(ind_class*1) > 1:
             color = plt.cm.Set1(ic)
             plt.scatter(z_embed[ind_class, 0], z_embed[ind_class, 1], s=10, color=color)
-            plt.title("Latent Variable T-SNE per Class")
+            plt.title("Latent Variable T-SNE (" + action_name + ")")
             fig.savefig(save_path  + "VAE_embedding_" + str(ic) + ".png")
     #fig.savefig(save_path +  "VAE_embedding.png")
     #fig.clf()
     plt.clf()
     fig = plt.figure()
-    for ic in range(10):
+    for ic in range(len(CLASSES)):
         #ind_vec = np.zeros_like(classes)
         #ind_vec[:, ic] = 1
+        action_name = get_key(CLASSES, ic)
         ind_class = classes == ic
-        if np.sum(ind_class*1) > 10:
+        if np.sum(ind_class*1) > 1:
             color = plt.cm.Set1(ic)
-            plt.scatter(z_embed[ind_class, 0], z_embed[ind_class, 1], s=10, color=color)
-    plt.title("Latent Variable T-SNE per Class")
+            plt.scatter(z_embed[ind_class, 0], z_embed[ind_class, 1], s=10, color=color, label=action_name)
+    plt.title("Latent Variable T-SNE per Action Mode")
+    plt.legend(loc="best")
             #fig.savefig(save_path  + "VAE_embedding_" + str(ic) + ".png")
     fig.savefig(save_path +  "VAE_embedding.png")
+    plt.clf()
 
 def test_tsne(vae=None, test_loader=None, save_path="./vae_results/"):
     """
