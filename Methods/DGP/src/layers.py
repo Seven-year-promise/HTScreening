@@ -172,7 +172,7 @@ class SVGPLayer(Layer):
             alpha = tf.linalg.triangular_solve(tf.transpose(self.Lu), alpha, lower=False)
 
         f_mean = tf.matmul(alpha, self.q_mu, transpose_a=True)
-        f_mean = f_mean + self.mean_function(X)
+        f_mean = f_mean + self.mean_function(X) # self.mean_function(X: $m(x_i)$
 
         alpha_tiled = tf.tile(alpha[None, :, :], [self.num_outputs, 1, 1])
 
