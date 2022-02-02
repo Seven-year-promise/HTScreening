@@ -36,7 +36,7 @@ def main(args):
     #trainset = DataSet2(path="./data/data_median_all_label.csv")
     train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                                shuffle=True, num_workers=2)
-    test_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
+    eval_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                                shuffle=False, num_workers=2)
     # setup the VAE
     model = VAE(input_dim=568, h_dim=500, z_dim=z_dim)
@@ -51,8 +51,8 @@ def main(args):
 
     train_recon_elbo = []
     train_kld_elbo = []
-    test_recon_elbo = []
-    test_kld_elbo = []
+    eval_recon_elbo = []
+    eval_kld_elbo = []
     # training loop
     for epoch in range(args.num_epochs):
         # initialize loss accumulator
@@ -97,9 +97,9 @@ def main(args):
         if epoch == args.tsne_iter:
             torch.save(model.state_dict(), args.main_path + 'vae' + str(args.tsne_iter) + '.pth')
             save_loss(np.array(train_recon_elbo), np.array(train_kld_elbo),
-                      np.array(test_recon_elbo), np.array(test_kld_elbo), save_path=args.main_path)
+                      np.array(eval_recon_elbo), np.array(eval_kld_elbo), save_path=args.main_path)
 
-            plot_distribution(vae=model, test_loader=test_loader, batch_size=batch_size, z_dim=z_dim, args=args, save_path=args.main_path)
+            plot_distribution(vae=model, eval_loader=eval_loader, batch_size=batch_size, z_dim=z_dim, args=args, save_path=args.main_path)
 
     return model
 
@@ -119,10 +119,10 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-tf",
-        "--test-frequency",
+        "--eval-frequency",
         default=1000,
         type=int,
-        help="how often we evaluate the test set",
+        help="how often we evaluate the eval set",
     )
     parser.add_argument(
         "-lr", "--learning-rate", default=1.0e-3, type=float, help="learning rate"

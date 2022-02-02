@@ -68,8 +68,9 @@ def evaluation_step(model, X, Y, batch_size=1000, num_samples=100):
 
 if __name__ == '__main__':
     x_train, y_train, x_test, y_test = load_data()
-    print(x_train.shape, y_train.shape)
-    """
+    for i in range(1000):
+        plt.plot(x_train[i, :])
+    plt.show()
     num_inducing = 100
     Z = kmeans2(x_train, num_inducing, minit="points")[0]
     batch_size = 1000
@@ -85,4 +86,3 @@ if __name__ == '__main__':
                                           num_samples)
         duration = time.time() - start_time
         print(f"ELBO: {elbo}, Likelihood: {likelihood}, Acc: {acc} [{duration}]")
-    """

@@ -10,6 +10,7 @@ import sys
 from skimage import io, draw, color, transform
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import Normalizer
 
 CLASSES = {"WT_control": 0,
            "TRPV agonist": 1,
@@ -29,7 +30,7 @@ RAW_CLASSES = {"WT_control": 0,
                }
 
 class EffectedDataSetSplited(data.Dataset):
-    def __init__(self, path, label_path):
+    def __init__(self, path, label_path, normalize=False):
         # read the label file, total: 4 classes
         data_list = []
         data_labels = []
@@ -44,7 +45,11 @@ class EffectedDataSetSplited(data.Dataset):
             for j, l in enumerate(read_lines):
                 data_labels = [int(i) for i in l]
 
-        self.data = data_list
+        data_list = np.array(data_list)
+        if normalize:
+            transformer = Normalizer().fit(np.array(data_list))
+            data_list = transformer.transform(data_list)
+        self.data = data_list.tolist()
 
         self.labels = data_labels
         print("the number of data:", len(data_labels))

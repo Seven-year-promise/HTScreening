@@ -41,12 +41,12 @@ def save_loss(recon_loss, kld_loss, recon_test_loss, kld_test_loss, class_loss=N
         for i, t_l in enumerate(recon_test_loss):
             f.write("Epoch {}    ave test recon loss: {}    \n".format(i, t_l))
 
-
-    with open(os.path.join(save_path, "kld_epoch_loss.txt"), "a+") as f:
-        for i, t_l in enumerate(kld_loss):
-            f.write("Epoch {}    ave train kld loss: {}    \n".format(i, t_l))
-        for i, t_l in enumerate(kld_test_loss):
-            f.write("Epoch {}    ave test kld loss: {}    \n".format(i, t_l))
+    if kld_loss is not None and kld_test_loss is not None:
+        with open(os.path.join(save_path, "kld_epoch_loss.txt"), "a+") as f:
+            for i, t_l in enumerate(kld_loss):
+                f.write("Epoch {}    ave train kld loss: {}    \n".format(i, t_l))
+            for i, t_l in enumerate(kld_test_loss):
+                f.write("Epoch {}    ave test kld loss: {}    \n".format(i, t_l))
 
     if class_test_loss is not None and class_loss is not None:
         with open(os.path.join(save_path, "class_epoch_loss.txt"), "a+") as f:

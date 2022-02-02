@@ -2,21 +2,20 @@ import argparse
 import numpy as np
 import torch
 import torch.nn as nn
-import visdom
 from vae_plots import plot_distribution, save_loss
 import torchvision
 from torchvision import datasets, transforms
 import pyro
 import matplotlib.pyplot as plt
 
-from vae_rbf import VAE_class
+from vae_ard import VAE_class
 from data_loader import DataSet, DataSet2, RawDataSet, EffectedDataSet, EffectedDataSetSplited
 from data_loader import CLASSES as CLASSES
 
 
 criterion = nn.BCELoss(reduction='sum')
 MSE = nn.MSELoss(reduction="sum")
-cross_entropy = nn.CrossEntropyLoss()
+cross_entropy = nn.CrossEntropyLoss(reduction="sum")
 def VaeLoss(recon_x,x,mu,logvar):
     MSE_loss = MSE(recon_x, x)#/10000000
     KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())# * 100.
@@ -33,9 +32,9 @@ def main(args):
     batch_size = 100
     z_dim = 100
     print("load training ...")
-    trainset = EffectedDataSetSplited(path="./data/dataset/train_set.csv", label_path="./data/dataset/train_label.csv")
-    print("load testing ...")
-    testset = EffectedDataSetSplited(path="./data/dataset/test_set.csv", label_path="./data/dataset/test_label.csv")
+    trainset = EffectedDataSetSplited(path="./data/dataset/train_set.csv", label_path="./data/dataset/train_label.csv", normalize=True)
+    print("load evaling ...")
+    evalset = EffectedDataSetSplited(path="./data/dataset/eval_set.csv", label_path="./data/dataset/eval_label.csv", normalize=True)
     #trainset = EffectedDataSet(path="./data/raw_data/old_compounds/", label_path="./data/raw_data/effected_compounds_pvalue_frames_labeled.csv",
     #                      input_dimension=568)
     #trainset = RawDataSet(path="./data/raw_data/old_compounds/", label_path="./data/data_median_all_label.csv",
@@ -43,7 +42,7 @@ def main(args):
     # trainset = DataSet2(path="./data/data_median_all_label.csv")
     train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                                shuffle=True, num_workers=2)
-    test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
+    eval_loader = torch.utils.data.DataLoader(evalset, batch_size=batch_size,
                                               shuffle=False, num_workers=2)
     # setup the VAE
     model = VAE_class(input_dim=568, h_dim=500, z_dim=z_dim, classes=len(CLASSES))
@@ -59,9 +58,9 @@ def main(args):
     train_recon_elbo = []
     train_kld_elbo = []
     train_class_elbo = []
-    test_recon_elbo = []
-    test_kld_elbo = []
-    test_class_elbo = []
+    eval_recon_elbo = []
+    eval_kld_elbo = []
+    eval_class_elbo = []
     # training loop
     for epoch in range(args.num_epochs):
         # initialize loss accumulator
@@ -86,8 +85,9 @@ def main(args):
             m, lvar, recon, classification = model(x)
             # epoch_loss += svi.step(x)
             vae_loss, mse_loss, kld_loss = VaeLoss(recon, x, m, lvar)
+            kld_loss *= 100
             class_loss = classifier_loss(classification, l)
-            class_loss *= 1000
+            #class_loss *= 1000
             epoch_recon_loss += mse_loss
             epoch_kld_loss += kld_loss
             epoch_class_loss += class_loss
@@ -116,8 +116,8 @@ def main(args):
         epoch_t_recon_loss = 0.0
         epoch_t_kld_loss = 0.0
         epoch_t_class_loss = 0.0
-        if epoch % args.test_frequency == 0:
-            for x, l in test_loader:
+        if epoch % args.eval_frequency == 0:
+            for x, l in eval_loader:
                 # if on GPU put mini-batch into CUDA memory
                 if x.size(0) != batch_size:
                     continue
@@ -133,35 +133,36 @@ def main(args):
                 m, lvar, recon, classification = model(x)
                 # epoch_loss += svi.step(x)
                 t_vae_loss, t_mse_loss, t_kld_loss = VaeLoss(recon, x, m, lvar)
+                t_kld_loss *= 100
                 t_class_loss = classifier_loss(classification, l)
-                t_class_loss *= 1000
-                epoch_t_recon_loss += mse_loss
-                epoch_t_kld_loss += kld_loss
-                epoch_t_class_loss += class_loss
+                #t_class_loss *= 1000
+                epoch_t_recon_loss += t_mse_loss
+                epoch_t_kld_loss += t_kld_loss
+                epoch_t_class_loss += t_class_loss
                 #loss.backward()
                 #optimizer.step()
 
-            normalizer_test = len(test_loader.dataset)
+            normalizer_eval = len(eval_loader.dataset)
             print(
-                "[epoch %03d] ---------- average testing recon loss: %f"
-                % (epoch, epoch_t_recon_loss / normalizer_test)
+                "[epoch %03d] ---------- average evaling recon loss: %f"
+                % (epoch, epoch_t_recon_loss / normalizer_eval)
             )
             print(
-                "\b [epoch %03d]  -----------average testing kld loss: %f"
-                % (epoch, epoch_t_kld_loss / normalizer_test)
+                "\b [epoch %03d]  -----------average evaling kld loss: %f"
+                % (epoch, epoch_t_kld_loss / normalizer_eval)
             )
             print(
                 "\b  [epoch %03d]  ----------average tesing class loss: %f"
-                % (epoch, epoch_t_class_loss / normalizer_test)
+                % (epoch, epoch_t_class_loss / normalizer_eval)
             )
 
         if epoch == args.tsne_iter:
             torch.save(model.state_dict(), args.main_path + 'vae' + str(args.tsne_iter) + '.pth')
             save_loss(np.array(train_recon_elbo), np.array(train_kld_elbo),
-                      np.array(test_recon_elbo), np.array(test_kld_elbo), np.array(train_class_elbo), np.array(test_class_elbo), save_path=args.main_path)
-            plot_distribution(vae=model, test_loader=train_loader, batch_size=batch_size, z_dim=z_dim, args=args,
+                      np.array(eval_recon_elbo), np.array(eval_kld_elbo), np.array(train_class_elbo), np.array(eval_class_elbo), save_path=args.main_path)
+            plot_distribution(vae=model, eval_loader=train_loader, batch_size=batch_size, z_dim=z_dim, args=args,
                               save_path=args.main_path + "train/")
-            plot_distribution(vae=model, test_loader=test_loader, batch_size=batch_size, z_dim=z_dim, args=args, save_path=args.main_path + "test/")
+            plot_distribution(vae=model, eval_loader=eval_loader, batch_size=batch_size, z_dim=z_dim, args=args, save_path=args.main_path + "eval/")
 
     return model
 
@@ -171,7 +172,7 @@ if __name__ == "__main__":
     # parse command line arguments
     parser = argparse.ArgumentParser(description="parse args")
     parser.add_argument(
-        "-n", "--num-epochs", default=1001, type=int, help="number of training epochs"
+        "-n", "--num-epochs", default=401, type=int, help="number of training epochs"
     )
     parser.add_argument(
         "-data_path",
@@ -181,10 +182,10 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-tf",
-        "--test_frequency",
+        "--eval_frequency",
         default=100,
         type=int,
-        help="how often we evaluate the test set",
+        help="how often we evaluate the eval set",
     )
     parser.add_argument(
         "-lr", "--learning-rate", default=1.0e-3, type=float, help="learning rate"
@@ -205,13 +206,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "-i-tsne",
         "--tsne_iter",
-        default=1000,
+        default=400,
         type=int,
         help="epoch when tsne visualization runs",
     )
     parser.add_argument(
         "--main_path",
-        default="./results/after_split/with_class/vae_rbf/",
+        default="./results/after_split/with_class/vae_ard/",
         help="the path to save",
     )
     args = parser.parse_args()

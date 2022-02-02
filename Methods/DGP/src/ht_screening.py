@@ -7,13 +7,13 @@ import tensorflow as tf
 import time
 
 from gpflow.kernels import RBF
-from gpflow.likelihoods import MultiClass
+from gpflow.likelihoods import MultiClass, Bernoulli
 from scipy.cluster.vq import kmeans2
 from scipy.stats import mode
 
 from deep_gp import DeepGP
 import csv
-
+from sklearn.preprocessing import normalize
 
 def load_data(data_path, label_path):
 
@@ -56,6 +56,8 @@ def training_step(model, X, Y, batch_size=1000):
                                 np.split(Y, n_batches)):
         with tf.GradientTape(watch_accessed_variables=False) as tape:
             tape.watch(dgp.trainable_variables)
+            #for t_p in dgp.trainable_variables:
+            #    print(t_p.name)
             objective = -model.elbo((x_batch, y_batch))
             gradients = tape.gradient(objective, dgp.trainable_variables)
         optimizer.apply_gradients(zip(gradients, dgp.trainable_variables))
@@ -80,13 +82,20 @@ if __name__ == '__main__':
     print(sys.path)
     x_train, y_train = load_data(data_path="/srv/yanke/PycharmProjects/HTScreening/data/dataset/train_set.csv",
                                  label_path="/srv/yanke/PycharmProjects/HTScreening/data/dataset/train_label.csv")
-    x_test, y_test = load_data(data_path="/srv/yanke/PycharmProjects/HTScreening/data/dataset/test_set.csv",
-                               label_path="/srv/yanke/PycharmProjects/HTScreening/data/dataset/test_label.csv")
-
+    x_eval, y_eval = load_data(data_path="/srv/yanke/PycharmProjects/HTScreening/data/dataset/eval_set.csv",
+                               label_path="/srv/yanke/PycharmProjects/HTScreening/data/dataset/eval_label.csv")
+    data_plot = x_train[np.where(y_train == 0)[0], :]
     x_train, y_train = x_train[:3000], y_train[:3000]
-    x_test, y_test = x_test[:800], y_test[:800]
+    x_eval, y_eval = x_eval[:800], y_eval[:800]
 
-    print(x_train.shape, y_train.shape, x_test.shape)
+
+    x_train /= np.max(x_train)
+    x_train -= 0.5
+
+    for i in range(data_plot.shape[0]):
+        plt.plot(data_plot[i, :])
+    plt.show()
+    print(x_train.shape, y_train.shape, x_eval.shape)
     num_inducing = 100
     Z = kmeans2(x_train, num_inducing, minit="points")[0]
     batch_size = 200
