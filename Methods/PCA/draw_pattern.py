@@ -45,6 +45,7 @@ if __name__ == '__main__':
     """
     # ==== draw the average of all patterns =======
     fig = plt.figure()
+    print(pattern_indexes)
     for i, p in enumerate(pattern_indexes):
         patten_data = []
         for p_i in p:
