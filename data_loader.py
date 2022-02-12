@@ -11,6 +11,7 @@ from skimage import io, draw, color, transform
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import Normalizer
+import skimage.io as io
 
 CLASSES = {"WT_control": 0,
            "TRPV agonist": 1,
@@ -254,3 +255,26 @@ class DataSet2(data.Dataset):
 
     def __len__(self):
         return len(self.data)
+
+class PCA_IM_dataset(data.Dataset):
+    def __init__(self, path):
+        # read the label file, total: 4 classes
+        data_path_list = []
+        im_files = os.listdir(path)
+        for i_f in im_files:
+            print(path+i_f)
+            data_path_list.append(path+i_f)
+
+        self.data_path = data_path_list
+        print("the number of data:", len(data_path_list))
+
+    def __getitem__(self, index):
+        #print(self.data_path[index])
+        im_data = io.imread(self.data_path[index])/255.0 - 0.5
+
+        d = torch.from_numpy(np.array([im_data])).float()
+
+        return d
+
+    def __len__(self):
+        return len(self.data_path)

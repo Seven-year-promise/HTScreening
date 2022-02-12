@@ -158,6 +158,39 @@ def plot_distribution(vae=None, test_loader=None, batch_size=None, z_dim=None, a
     fig.savefig(save_path +  "VAE_embedding.png")
     plt.clf()
 
+
+def plot_latent_no_class(vae=None, test_loader=None, batch_size=None, z_dim=None, args=None, save_path="./vae_results/"):
+    """
+    This is used to generate a distribution of the samples
+    """
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from sklearn.manifold import TSNE
+
+    num_data = len(test_loader.dataset)
+    print("number of test data: ", num_data)
+    z_loc = np.zeros((num_data, z_dim), np.float)
+    for i, x in enumerate(test_loader):
+        if args.cuda:
+            x = x.cuda()
+        m, _ = vae.encoder(x)
+        if num_data > (i + 1) * batch_size:
+            z_loc[(i*batch_size):((i+1)*batch_size), :] = m.detach().cpu().numpy()
+        else:
+            z_loc[(i*batch_size):, :] = m.detach().cpu().numpy()
+
+
+    model_tsne = TSNE(n_components=2, random_state=0)
+    z_embed = model_tsne.fit_transform(z_loc)
+    color = plt.cm.Set1(0)
+    plt.scatter(z_embed[:, 0], z_embed[:, 1], s=10, color=color)
+    plt.title("Latent Variable T-SNE of all data")
+    plt.savefig(save_path  + "VAE_embedding_all" + ".png")
+    plt.clf()
+
 def test_tsne(vae=None, test_loader=None, save_path="./vae_results/"):
     """
     This is used to generate a t-sne embedding of the vae

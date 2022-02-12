@@ -7,7 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 import seaborn as sns
-from Methods.PCA.pca_dim_reduce import load_data, try_PCA_with_torch
+from Methods.PCA.utils import load_data
+from Methods.PCA.pca_dim_reduce import try_PCA_with_torch
 from Methods.PCA.PCA import PCA_torch
 
 matplotlib.use("TkAgg")
@@ -59,18 +60,39 @@ def visualize_PCA():
     #ax = sns.heatmap(plot_data, linewidth=0.5)
     #plt.show()
 
-def visualize_compound(compounds=[], input_dimension = 568):
-    base_path = "/srv/yanke/PycharmProjects/HTScreening/data/raw_data/old_compounds/"
-
+def visualize_compound_cleaned(compounds=[], input_dimension = 568):
+    base_path = "/srv/yanke/PycharmProjects/HTScreening/data/cleaned_data/"
+    WT_path = base_path + "WT/"
     data_dict = {}
+    #read WT data
+    WT_files = os.listdir(WT_path)
+    data_dict["WT"] = []
+    for wt_f in WT_files:
+        # print(d_f_name, lb)
+        wt_d_l = []
+        print("reading: ", WT_path + wt_f)
+        with open(WT_path + wt_f, newline='') as csv_f:
+            read_lines = csv.reader(csv_f, delimiter=",")
+            for j, l in enumerate(read_lines):
+                if j > 1:
+                    data_line = [float(i) for i in l]
+                    wt_d_l.append(data_line)
+            wt_d_l = np.array(wt_d_l, np.float)
+            for i in range(wt_d_l.shape[1]):
+                # print(list(d_l[:, i]))
+                data_dict["WT"].append(list(wt_d_l[:input_dimension, i]))
+
     data_files = os.listdir(base_path)
     for d_f in data_files:
-        d_f_name = d_f[:-6]
+        if d_f == "WT":
+            continue
+        d_f_name = d_f[:-4]
         if d_f_name[:2] == "WT":
             d_f_name = "WT"
         # print(d_f_name, lb)
         data_dict[d_f_name] = []
         d_l = []
+        print("reading: ", base_path + d_f)
         with open(base_path + d_f, newline='') as csv_f:
             read_lines = csv.reader(csv_f, delimiter=",")
             for j, l in enumerate(read_lines):
@@ -84,7 +106,7 @@ def visualize_compound(compounds=[], input_dimension = 568):
 
     fig, axs = plt.subplots(len(compounds))
     for i in range(len(compounds)):
-        for d in data_dict[compounds[i]]:
+        for d in data_dict[compounds[i]][::8]:
             axs[i].plot(d)
         axs[i].set_ylabel("motion index")
         axs[i].set_xlabel("time")
@@ -99,78 +121,10 @@ def visualize_compound(compounds=[], input_dimension = 568):
     #ax = sns.heatmap(plot_data, linewidth=0.5)
     #plt.show()
 
-def visualize_compound_after_PCA(compounds=[], input_dimension = 568):
-    PCA_dim = 50
-    base_path = "/srv/yanke/PycharmProjects/HTScreening/data/raw_data/old_compounds/"
-    pca = PCA_torch(center=False, n_components=PCA_dim)
-
-
-    all_data = []
-    data_dict = {}
-    data_files = os.listdir(base_path)
-    for d_f in data_files:
-        d_f_name = d_f[:-6]
-        if d_f_name[:2] == "WT":
-            d_f_name = "WT"
-        # print(d_f_name, lb)
-        data_dict[d_f_name] = []
-        d_l = []
-        with open(base_path + d_f, newline='') as csv_f:
-            read_lines = csv.reader(csv_f, delimiter=",")
-            for j, l in enumerate(read_lines):
-                if j > 1:
-                    data_line = [float(i) for i in l]
-                    d_l.append(data_line)
-            d_l = np.array(d_l, np.float)
-            for i in range(d_l.shape[1]):
-                # print(list(d_l[:, i]))
-                data_item = list(d_l[:input_dimension, i])
-                data_dict[d_f_name].append(data_item)
-                all_data.append(data_item)
-
-    all_data = np.array(all_data)
-    new_all_train = pca.fit_PCA(all_data)
-
-    #dis_num = 0
-    #for c in compounds:
-    #    dis_num += len(data_dict[c])
-
-    display_data = []#np.zeros((dis_num, 10), np.float)
-    #fig, axs = plt.subplots(len(compounds)+1)
-    fig = plt.figure()
-    for i in range(len(compounds)):
-        comp_data = data_dict[compounds[i]]
-        comp_data = np.array(comp_data)
-        new_comp_data = pca.test(comp_data)
-        for d in range(new_comp_data.shape[0]):
-            display_data.append(new_comp_data[d])
-        display_data.append(np.zeros((PCA_dim), dtype=np.float))
-        #axs[i].imshow(new_comp_data, cmap="hot", interpolation="nearest")
-        #axs[i].set_ylabel("fish case")
-        #axs[i].set_xlabel("dimension")
-        #axs[i].set_title(compounds[i])
-        #plt.plot(plot_data[i, :])
-    #plt.xlabel("time")
-    #plt.title("motion index")
-    #axs[-1].imshow(np.array(display_data), cmap="hot", interpolation="nearest")
-    #axs[-1].set_ylabel("fish case")
-    #axs[-1].set_xlabel("dimension")
-    #axs[-1].set_title("all")
-    im = plt.imshow(np.array(display_data), cmap="gray", interpolation="nearest")
-    plt.colorbar(im)
-    plt.ylabel("Fish case")
-    plt.xlabel("Components of PCA")
-    plt.title("all")
-    plt.tight_layout()
-    plt.show()
-    #max_v = np.max(plot_data)
-    #plot_data /= max_v
-    #ax = sns.heatmap(plot_data, linewidth=0.5)
-    #plt.show()
 
 if __name__ == "__main__":
     #visualize(path="./data/raw_data/old_compounds/")
     #trainset = RawDataSet(path="./data/raw_data/old_compounds/", label_path="./data/data_median_all_label.csv")
     #visualize_PCA()
-    #visualize_compound(["WT", "C5", "C12"]) #, "C14", "C20", "C88"])
-    visualize_compound_after_PCA(["WT", "C5", "C12", "C88", "C105", "C117"])
+    visualize_compound_cleaned(["WT", "C5", "C105"], input_dimension=541) #, "C14", "C20", "C88"])
+    #visualize_compound_after_PCA(["WT", "C5", "C12", "C88", "C105", "C117"])

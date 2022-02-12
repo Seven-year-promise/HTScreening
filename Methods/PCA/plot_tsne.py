@@ -40,6 +40,24 @@ def plot_dist_train_test(train_feature=None, eval_feature=None, save_path="./vae
     fig.savefig(save_path +  "VAE_embedding.png")
     plt.clf()
 
+def plot_tsne_train_test(train_feature=None, eval_feature=None, save_path="./vae_results/"):
+    fig = plt.figure()
+    model_tsne = TSNE(n_components=2, random_state=0)
+
+    if train_feature is not None:
+        train_feature = model_tsne.fit_transform(train_feature)
+        color = plt.cm.Set1(0)
+        plt.scatter(train_feature[:, 0], train_feature[:, 1], s=1, color=color, label="train")
+    if eval_feature is not None:
+        eval_feature = model_tsne.fit_transform(eval_feature)
+        color = plt.cm.Set1(1)
+        plt.scatter(eval_feature[:, 0], eval_feature[:, 1], s=1, color=color, label="eval")
+    plt.title("First two main dimensions after PCA")
+    plt.legend(loc="best")
+            #fig.savefig(save_path  + "VAE_embedding_" + str(ic) + ".png")
+    fig.savefig(save_path +  "VAE_embedding.png")
+    plt.clf()
+
 def plot_dist_name(data_x, save_path="./vae_results/"):
     """
     This is used to generate a distribution of the samples

@@ -149,7 +149,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--main_path",
-        default="./results/effected_data/no_class/vae/",
+        default="./results/effected_data/no_class/vae_bat/",
         help="the path to save",
     )
     args = parser.parse_args()
