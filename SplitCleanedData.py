@@ -50,7 +50,7 @@ def get_data(data_path, input_dimension=568):
             for i in range(wt_d_l.shape[1]):
                 # print(list(d_l[:, i]))
                 data_list.append(list(wt_d_l[:input_dimension, i]))
-                data_labels.append(["WT"])
+                data_labels.append(["0"]) # "WT" as 0
 
     data_files = os.listdir(base_path)
     for d_f in data_files:
@@ -72,7 +72,7 @@ def get_data(data_path, input_dimension=568):
             for i in range(d_l.shape[1]):
                 # print(list(d_l[:, i]))
                 data_list.append(list(d_l[:input_dimension, i]))
-                data_labels.append([d_f_name])
+                data_labels.append([d_f_name[1:]]) # withour "C"
 
     print("the number of data:", len(data_labels))
     print("the dimension of data:", len(data_list[0]))

@@ -3,14 +3,14 @@ import numpy as np
 import torch
 import torch.nn as nn
 import visdom
-from vae_plots import plot_distribution, save_loss
+from vae_plots import plot_latent_heatmap_by_compound, save_loss
 import torchvision
 from torchvision import datasets, transforms
 import pyro
 import matplotlib.pyplot as plt
 
 from vae import VAE
-from data_loader import DataSet, DataSet2, RawDataSet, EffectedDataSet
+from data_loader import EffectedDataSetSplited
 
 
 criterion = nn.BCELoss(reduction='sum')
@@ -29,9 +29,12 @@ def main(args):
     batch_size = 100
     z_dim = 100
 
-    trainset = EffectedDataSet(path="./data/raw_data/old_compounds/",
-                          label_path="./data/raw_data/effected_compounds_pvalue_frames_labeled.csv",
-                          input_dimension=568)
+    trainset = EffectedDataSetSplited(path="./data/cleaned_dataset/train_set.csv",
+                          label_path="./data/cleaned_dataset/train_label.csv",
+                          normalize=False)
+    evalset = EffectedDataSetSplited(path="./data/cleaned_dataset/eval_set.csv",
+                                      label_path="./data/cleaned_dataset/eval_label.csv",
+                                      normalize=False)
     #trainset = RawDataSet(path="./data/raw_data/old_compounds/", label_path="./data/data_median_all_label.csv", input_dimension=568)
     #trainset = DataSet2(path="./data/data_median_all_label.csv")
     train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
@@ -39,7 +42,7 @@ def main(args):
     eval_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                                shuffle=False, num_workers=2)
     # setup the VAE
-    model = VAE(input_dim=568, h_dim=500, z_dim=z_dim)
+    model = VAE(input_dim=540, h_dim=256, z_dim=z_dim)
     if args.cuda:
         model.cuda()
 
@@ -62,7 +65,7 @@ def main(args):
         # by the data loader
         for x, _ in train_loader:
             # if on GPU put mini-batch into CUDA memory
-            #print(x.size(1))
+            #print(x.size)
             if x.size(0) != batch_size:
                 continue
             if args.cuda:
@@ -99,7 +102,7 @@ def main(args):
             save_loss(np.array(train_recon_elbo), np.array(train_kld_elbo),
                       np.array(eval_recon_elbo), np.array(eval_kld_elbo), save_path=args.main_path)
 
-            plot_distribution(vae=model, eval_loader=eval_loader, batch_size=batch_size, z_dim=z_dim, args=args, save_path=args.main_path)
+            plot_latent_heatmap_by_compound(vae=model, test_loader=eval_loader, batch_size=batch_size, z_dim=z_dim, args=args, save_path=args.main_path)
 
     return model
 
@@ -109,7 +112,7 @@ if __name__ == "__main__":
     # parse command line arguments
     parser = argparse.ArgumentParser(description="parse args")
     parser.add_argument(
-        "-n", "--num-epochs", default=1001, type=int, help="number of training epochs"
+        "-n", "--num-epochs", default=101, type=int, help="number of training epochs"
     )
     parser.add_argument(
         "-data_path",
@@ -120,7 +123,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-tf",
         "--eval-frequency",
-        default=1000,
+        default=100,
         type=int,
         help="how often we evaluate the eval set",
     )
@@ -143,13 +146,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "-i-tsne",
         "--tsne_iter",
-        default=1000,
+        default=100,
         type=int,
         help="epoch when tsne visualization runs",
     )
     parser.add_argument(
         "--main_path",
-        default="./results/effected_data/no_class/vae_bat/",
+        default="./results/cleaned/vae/no_class/",
         help="the path to save",
     )
     args = parser.parse_args()

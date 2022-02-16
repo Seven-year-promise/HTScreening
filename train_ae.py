@@ -2,7 +2,7 @@ import argparse
 import numpy as np
 import torch
 import torch.nn as nn
-from vae_plots import plot_distribution, save_loss
+from vae_plots import plot_latent_heatmap_by_compound, save_loss
 import torchvision
 from torchvision import datasets, transforms
 import pyro
@@ -27,11 +27,14 @@ def main(args):
     pyro.clear_param_store()
 
     batch_size = 100
-    z_dim = 2
+    z_dim = 100
     print("load training ...")
-    trainset = EffectedDataSetSplited(path="./data/dataset/train_set.csv", label_path="./data/dataset/train_label.csv", normalize=True)
-    print("load testing ...")
-    testset = EffectedDataSetSplited(path="./data/dataset/test_set.csv", label_path="./data/dataset/test_label.csv", normalize=True)
+    trainset = EffectedDataSetSplited(path="./data/cleaned_dataset/train_set.csv",
+                                      label_path="./data/cleaned_dataset/train_label.csv",
+                                      normalize=True)
+    evalset = EffectedDataSetSplited(path="./data/cleaned_dataset/eval_set.csv",
+                                     label_path="./data/cleaned_dataset/eval_label.csv",
+                                     normalize=False)
     #trainset = EffectedDataSet(path="./data/raw_data/old_compounds/", label_path="./data/raw_data/effected_compounds_pvalue_frames_labeled.csv",
     #                      input_dimension=568)
     #trainset = RawDataSet(path="./data/raw_data/old_compounds/", label_path="./data/data_median_all_label.csv",
@@ -39,10 +42,10 @@ def main(args):
     # trainset = DataSet2(path="./data/data_median_all_label.csv")
     train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                                shuffle=True, num_workers=2)
-    test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
+    test_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                               shuffle=False, num_workers=2)
     # setup the VAE
-    model = AE(input_dim=568, h_dim=500, z_dim=z_dim)
+    model = AE(input_dim=540, h_dim=256, z_dim=z_dim)
     if args.cuda:
         model.cuda()
 
@@ -127,9 +130,9 @@ def main(args):
             torch.save(model.state_dict(), args.main_path + 'vae' + str(args.tsne_iter) + '.pth')
             save_loss(np.array(train_recon_elbo), None,
                       np.array(test_recon_elbo), None, None, None, save_path=args.main_path)
-            plot_distribution(vae=model, test_loader=train_loader, batch_size=batch_size, z_dim=z_dim, args=args,
-                              save_path=args.main_path + "train/")
-            plot_distribution(vae=model, test_loader=test_loader, batch_size=batch_size, z_dim=z_dim, args=args, save_path=args.main_path + "test/")
+            plot_latent_heatmap_by_compound(vae=model, test_loader=train_loader, batch_size=batch_size, z_dim=z_dim, args=args,
+                              save_path=args.main_path)
+            #plot_latent_heatmap_by_compound(vae=model, test_loader=test_loader, batch_size=batch_size, z_dim=z_dim, args=args, save_path=args.main_path + "test/")
 
     return model
 
@@ -139,7 +142,7 @@ if __name__ == "__main__":
     # parse command line arguments
     parser = argparse.ArgumentParser(description="parse args")
     parser.add_argument(
-        "-n", "--num-epochs", default=401, type=int, help="number of training epochs"
+        "-n", "--num-epochs", default=101, type=int, help="number of training epochs"
     )
     parser.add_argument(
         "-data_path",
@@ -173,13 +176,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "-i-tsne",
         "--tsne_iter",
-        default=400,
+        default=100,
         type=int,
         help="epoch when tsne visualization runs",
     )
     parser.add_argument(
         "--main_path",
-        default="./results/after_split/ae/",
+        default="./results/cleaned/ae/no_class/train/",
         help="the path to save",
     )
     args = parser.parse_args()

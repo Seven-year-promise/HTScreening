@@ -9,17 +9,10 @@ from torchvision import datasets, transforms
 import pyro
 import matplotlib.pyplot as plt
 
-from vae import ConvVAE
+from ae import ConvAE
 from data_loader import PCA_IM_dataset
 
-
-criterion = nn.BCELoss(reduction='sum')
-MSE = nn.MSELoss(reduction="sum")
-def VaeLoss(recon_x,x,mu,logvar):
-    MSE_loss = MSE(recon_x, x)#/10000000
-    KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())# * 100.
-    loss = MSE_loss+KLD
-    return loss, MSE_loss, KLD
+from utils.losses import AeLoss
 
 
 def main(args):
@@ -37,7 +30,7 @@ def main(args):
     eval_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                                shuffle=False, num_workers=2)
     # setup the VAE
-    model = ConvVAE(image_channels=1, z_dim=z_dim)
+    model = ConvAE(image_channels=1, z_dim=z_dim)
     if args.cuda:
         model.cuda()
 
@@ -48,14 +41,11 @@ def main(args):
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 
     train_recon_elbo = []
-    train_kld_elbo = []
     eval_recon_elbo = []
-    eval_kld_elbo = []
     # training loop
     for epoch in range(args.num_epochs):
         # initialize loss accumulator
         epoch_recon_loss = 0.0
-        epoch_kld_loss = 0.0
         # do a training epoch over each mini-batch x returned
         # by the data loader
         for x, _ in train_loader:
@@ -71,31 +61,25 @@ def main(args):
             # cv2.imshow("im", x_im)
             # cv2.waitKey(0)
             optimizer.zero_grad()
-            m, lvar, recon = model(x)
+            m, recon = model(x)
             # epoch_loss += svi.step(x)
-            loss, mse_loss, kld_loss = VaeLoss(recon, x, m, lvar)
+            loss = mse_loss = AeLoss(recon, x)
             epoch_recon_loss += mse_loss
-            epoch_kld_loss += kld_loss
             loss.backward()
             optimizer.step()
 
         # report training diagnostics
         normalizer_train = len(train_loader.dataset)
         train_recon_elbo.append(epoch_recon_loss / normalizer_train)
-        train_kld_elbo.append(epoch_kld_loss / normalizer_train)
         print(
             "[epoch %03d]  average training recon loss: %f"
             % (epoch, epoch_recon_loss / normalizer_train)
         )
-        print(
-            " \b[epoch %03d]  average training kld loss: %f"
-            % (epoch, epoch_kld_loss / normalizer_train)
-        )
 
         if epoch == args.tsne_iter:
-            torch.save(model.state_dict(), args.main_path + 'vae' + str(args.tsne_iter) + '.pth')
-            save_loss(np.array(train_recon_elbo), np.array(train_kld_elbo),
-                      np.array(eval_recon_elbo), np.array(eval_kld_elbo), save_path=args.main_path)
+            torch.save(model.state_dict(), args.main_path + 'ae' + str(args.tsne_iter) + '.pth')
+            save_loss(np.array(train_recon_elbo), None,
+                      np.array(eval_recon_elbo), None, save_path=args.main_path)
 
             plot_latent_heatmap_with_class(vae=model, test_loader=eval_loader, batch_size=batch_size, z_dim=z_dim, args=args, save_path=args.main_path)
 
@@ -147,7 +131,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--main_path",
-        default="./results/after_pca/no_class/vae/",
+        default="./results/after_pca/no_class/ae/",
         help="the path to save",
     )
     args = parser.parse_args()

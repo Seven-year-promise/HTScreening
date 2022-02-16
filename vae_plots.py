@@ -173,7 +173,7 @@ def plot_latent_no_class(vae=None, test_loader=None, batch_size=None, z_dim=None
     num_data = len(test_loader.dataset)
     print("number of test data: ", num_data)
     z_loc = np.zeros((num_data, z_dim), np.float)
-    for i, x in enumerate(test_loader):
+    for i, (x, _) in enumerate(test_loader):
         if args.cuda:
             x = x.cuda()
         m, _ = vae.encoder(x)
@@ -189,6 +189,136 @@ def plot_latent_no_class(vae=None, test_loader=None, batch_size=None, z_dim=None
     plt.scatter(z_embed[:, 0], z_embed[:, 1], s=10, color=color)
     plt.title("Latent Variable T-SNE of all data")
     plt.savefig(save_path  + "VAE_embedding_all" + ".png")
+    plt.clf()
+
+def plot_latent_with_class(vae=None, test_loader=None, batch_size=None, z_dim=None, args=None, save_path="./vae_results/"):
+    """
+    This is used to generate a distribution of the samples
+    """
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from sklearn.manifold import TSNE
+
+    num_data = len(test_loader.dataset)
+    print("number of test data: ", num_data)
+    z_loc = np.zeros((num_data, z_dim), np.float)
+    labels = np.zeros((num_data, 1), np.int)
+    for i, (x, l) in enumerate(test_loader):
+        if args.cuda:
+            x = x.cuda()
+        m, _ = vae.encoder(x)
+        if num_data > (i + 1) * batch_size:
+            z_loc[(i*batch_size):((i+1)*batch_size), :] = m.detach().cpu().numpy()
+            labels[(i * batch_size):((i + 1) * batch_size), :] = l
+        else:
+            z_loc[(i*batch_size):, :] = m.detach().cpu().numpy()
+            labels[(i*batch_size):, :] = l
+
+    model_tsne = TSNE(n_components=2, random_state=0)
+    z_embed = model_tsne.fit_transform(z_loc)
+    color = plt.cm.Set1(0)
+    for n in range(num_data):
+        plt.scatter(z_embed[n, 0], z_embed[n, 1], s=2, color=color)
+        plt.text(z_embed[n, 0], z_embed[n, 1], labels[n, 0], fontsize=5)
+    plt.title("Latent Variable T-SNE of all data")
+    plt.savefig(save_path  + "VAE_embedding_all" + ".png")
+    plt.clf()
+
+def plot_latent_heatmap_with_class(vae=None, test_loader=None, batch_size=None, z_dim=None, args=None, save_path="./vae_results/"):
+    """
+    This is used to generate a distribution of the samples
+    """
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from sklearn.manifold import TSNE
+
+    num_data = len(test_loader.dataset)
+    print("number of test data: ", num_data)
+    z_loc = np.zeros((num_data, z_dim), np.float)
+    labels = np.zeros((num_data, 1), np.int)
+    for i, (x, l) in enumerate(test_loader):
+        if args.cuda:
+            x = x.cuda()
+        m, _ = vae.encoder(x)
+        if num_data > (i + 1) * batch_size:
+            z_loc[(i*batch_size):((i+1)*batch_size), :] = m.detach().cpu().numpy()
+            labels[(i * batch_size):((i + 1) * batch_size), :] = l
+        else:
+            z_loc[(i*batch_size):, :] = m.detach().cpu().numpy()
+            labels[(i*batch_size):, :] = l
+
+    fig, axis = plt.subplots()  # il me semble que c'est une bonne habitude de faire supbplots
+    heatmap = axis.pcolor(z_loc, cmap=plt.cm.Blues)  # heatmap contient les valeurs
+
+    axis.set_yticks(np.arange(z_loc.shape[0]) + 0.5, minor=False)
+    axis.set_xticks(np.arange(z_loc.shape[1]) + 0.5, minor=False)
+
+    axis.invert_yaxis()
+
+    axis.set_yticklabels(labels, minor=False)
+
+    fig.set_size_inches(11.03, 3.5)
+    plt.title("Latent of all data")
+    plt.savefig(save_path  + "VAE_embedding_all" + ".png")
+    plt.clf()
+
+def plot_latent_heatmap_by_compound(vae=None, test_loader=None, batch_size=None, z_dim=None, args=None, save_path="./vae_results/"):
+    """
+    This is used to generate a distribution of the samples
+    """
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from sklearn.manifold import TSNE
+
+    num_data = len(test_loader.dataset)
+    print("number of test data: ", num_data)
+    z_loc = np.zeros((num_data, z_dim), np.float)
+    labels = np.zeros((num_data, 1), np.int)
+    for i, (x, l) in enumerate(test_loader):
+        if args.cuda:
+            x = x.cuda()
+        m, _ = vae.encoder(x)
+        if num_data > (i + 1) * batch_size:
+            z_loc[(i*batch_size):((i+1)*batch_size), :] = m.detach().cpu().numpy()
+            labels[(i * batch_size):((i + 1) * batch_size), 0] = l
+        else:
+            z_loc[(i*batch_size):, :] = m.detach().cpu().numpy()
+            labels[(i*batch_size):, 0] = l
+
+    display_data = []
+    for c in range(5, 10):
+        inds = labels[:, 0] == c
+        comp_data = z_loc[inds]
+        num_comp_data = comp_data.shape[0]
+        if num_comp_data < 1:
+            continue
+        for c_n in range(num_comp_data):
+            display_data.append(comp_data[c_n, :])
+        display_data.append(np.zeros(comp_data.shape[1], dtype=np.float))
+
+    fig, axis = plt.subplots()  # il me semble que c'est une bonne habitude de faire supbplots
+    #heatmap = axis.pcolor(display_data, cmap=plt.cm.Blues)  # heatmap contient les valeurs
+    im = plt.imshow(np.array(display_data), cmap="cool", interpolation="nearest")
+    plt.colorbar(im)
+    #axis.set_yticks(np.arange(z_loc.shape[0]) + 0.5, minor=False)
+    #axis.set_xticks(np.arange(z_loc.shape[1]) + 0.5, minor=False)
+
+    #axis.invert_yaxis()
+
+    #axis.set_yticklabels(labels, minor=False)
+
+    fig.set_size_inches(11.03, 3.5)
+    plt.title("Latent of all data")
+    plt.savefig(save_path  + "latent_embedding_all" + ".png")
     plt.clf()
 
 def test_tsne(vae=None, test_loader=None, save_path="./vae_results/"):

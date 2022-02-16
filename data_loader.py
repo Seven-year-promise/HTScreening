@@ -260,21 +260,27 @@ class PCA_IM_dataset(data.Dataset):
     def __init__(self, path):
         # read the label file, total: 4 classes
         data_path_list = []
+        label_list = []
         im_files = os.listdir(path)
         for i_f in im_files:
             print(path+i_f)
             data_path_list.append(path+i_f)
+            if i_f[:2] == "WT":
+                label_list.append(0)
+            else:
+                label_list.append(int(i_f[1:-4]))
 
         self.data_path = data_path_list
+        self.labels = label_list
         print("the number of data:", len(data_path_list))
 
     def __getitem__(self, index):
         #print(self.data_path[index])
         im_data = io.imread(self.data_path[index])/255.0 - 0.5
-
+        label_data = self.labels[index]
         d = torch.from_numpy(np.array([im_data])).float()
-
-        return d
+        l = torch.from_numpy(np.array([label_data])).long()
+        return d, l
 
     def __len__(self):
         return len(self.data_path)

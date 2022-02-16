@@ -126,6 +126,95 @@ class AE_class(nn.Module):
         clasification = self.classifier(class_fc)
         return reconstruction, clasification
 
+class ConvAE(nn.Module):
+    def __init__(self, kernel_size=4, init_channels=8, image_channels=1, z_dim=16, h_dim=128):
+        super(ConvAE, self).__init__()
+
+        # encoder
+        self.enc1 = nn.Conv2d(
+            in_channels=image_channels, out_channels=init_channels, kernel_size=kernel_size,
+            stride=2, padding=1
+        )
+        self.enc2 = nn.Conv2d(
+            in_channels=init_channels, out_channels=init_channels * 2, kernel_size=kernel_size,
+            stride=2, padding=1
+        )
+        self.enc3 = nn.Conv2d(
+            in_channels=init_channels * 2, out_channels=init_channels * 4, kernel_size=kernel_size,
+            stride=2, padding=1
+        )
+        self.enc4 = nn.Conv2d(
+            in_channels=init_channels * 4, out_channels=64, kernel_size=kernel_size,
+            stride=2, padding=0
+        )
+        # fully connected layers for learning representations
+        self.fc1 = nn.Linear(64, h_dim)
+        self.fc_mu = nn.Linear(h_dim, z_dim)
+        self.fc2 = nn.Linear(z_dim, 64)
+        # decoder
+        self.dec1 = nn.ConvTranspose2d(
+            in_channels=64, out_channels=init_channels * 8, kernel_size=kernel_size,
+            stride=1, padding=0
+        )
+        self.dec2 = nn.ConvTranspose2d(
+            in_channels=init_channels * 8, out_channels=init_channels * 4, kernel_size=kernel_size,
+            stride=2, padding=1
+        )
+        self.dec3 = nn.ConvTranspose2d(
+            in_channels=init_channels * 4, out_channels=init_channels * 2, kernel_size=kernel_size,
+            stride=2, padding=1
+        )
+        self.dec4 = nn.ConvTranspose2d(
+            in_channels=init_channels * 2, out_channels=image_channels, kernel_size=kernel_size,
+            stride=2, padding=1
+        )
+
+    def encoder(self, x):
+        x = nn.functional.relu(self.enc1(x))
+        x = nn.functional.relu(self.enc2(x))
+        x = nn.functional.relu(self.enc3(x))
+        x = nn.functional.relu(self.enc4(x))
+        batch, _, _, _ = x.shape
+        x = nn.functional.adaptive_avg_pool2d(x, 1).reshape(batch, -1)
+        hidden = self.fc1(x)
+        # get `mu` and `log_var`
+        mu = self.fc_mu(hidden)
+
+        return mu, None
+
+    def decoder(self, z):
+        z = self.fc2(z)
+        z = z.view(-1, 64, 1, 1)
+
+        # decoding
+        x = nn.functional.relu(self.dec1(z))
+        x = nn.functional.relu(self.dec2(x))
+        x = nn.functional.relu(self.dec3(x))
+        reconstruction = torch.sigmoid(self.dec4(x))
+        return reconstruction
+
+    def forward(self, x):
+        # encoding
+        x = nn.functional.relu(self.enc1(x))
+        x = nn.functional.relu(self.enc2(x))
+        x = nn.functional.relu(self.enc3(x))
+        x = nn.functional.relu(self.enc4(x))
+        batch, _, _, _ = x.shape
+        x = nn.functional.adaptive_avg_pool2d(x, 1).reshape(batch, -1)
+        hidden = self.fc1(x)
+        # get `mu` and `log_var`
+        mu = self.fc_mu(hidden)
+        # get the latent vector through reparameterization
+        z = self.fc2(mu)
+        z = z.view(-1, 64, 1, 1)
+
+        # decoding
+        x = nn.functional.relu(self.dec1(z))
+        x = nn.functional.relu(self.dec2(x))
+        x = nn.functional.relu(self.dec3(x))
+        reconstruction = torch.sigmoid(self.dec4(x))
+        return mu, reconstruction
+
 if __name__ == "__main__":
     assert pyro.__version__.startswith("1.7.0")
     # parse command line arguments
