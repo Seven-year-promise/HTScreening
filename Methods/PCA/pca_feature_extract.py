@@ -6,10 +6,10 @@ import sys
 sys.path.append("../../")
 import csv
 from Methods.PCA.PCA import PCA_torch
-from Methods.PCA.plot_tsne import plot_dist_no_label, plot_dist_with_label, plot_dist_name, plot_dist_train_test, plot_tsne_train_test
+from Methods.PCA.utils import plot_dist_no_label, plot_dist_with_label, plot_dist_name, plot_dist_train_test, plot_tsne_train_test
 import os
 import matplotlib.pyplot as plt
-from Methods.PCA.utils import load_data
+from Methods.PCA.data_loader import load_data
 
 
 def try_PCA_with_test(train_set, test_set):

@@ -9,8 +9,8 @@ import pyro
 import matplotlib.pyplot as plt
 
 from vae_ard import VAE_class
-from data_loader import DataSet, DataSet2, RawDataSet, EffectedDataSet, EffectedDataSetSplited
-from data_loader import CLASSES as CLASSES
+from Methods.VAE.data_loader import DataSet, DataSet2, RawDataSet, EffectedDataSet, EffectedDataSetSplited
+from Methods.VAE.data_loader import CLASSES as CLASSES
 
 
 criterion = nn.BCELoss(reduction='sum')

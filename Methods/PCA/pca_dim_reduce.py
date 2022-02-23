@@ -3,12 +3,11 @@ import sys
 import numpy as np
 import cv2
 import sys
-sys.path.append("../../")
 import csv
-from Methods.PCA.PCA import PCA_torch
-from Methods.PCA.plot_tsne import plot_dist_no_label, plot_dist_with_label, plot_dist_name, plot_dist_train_test, plot_tsne_train_test
+from PCA import PCA_torch
+from utils import plot_dist_no_label, plot_dist_with_label, plot_dist_name, plot_dist_train_test, plot_tsne_train_test
 from sklearn.cluster import MeanShift, KMeans
-from Methods.PCA.utils import load_train_test_data, load_cleaned_train_test_data
+#from data_loader import load_train_test_data, load_cleaned_train_test_data
 
 def try_PCA_with_torch(data):
     pca = PCA_torch(center=False, n_components=2)
@@ -16,8 +15,8 @@ def try_PCA_with_torch(data):
 
     return data, new_feature
 
-def try_PCA_with_test(train_set, test_set):
-    pca = PCA_torch(center=False, n_components=2)
+def try_PCA_with_test(train_set, test_set, n_components=2):
+    pca = PCA_torch(center=False, n_components=n_components)
     new_train = pca.fit_PCA(train_set)
     new_test = pca.test(test_set)
 

@@ -4,13 +4,12 @@ import torch
 import torch.nn as nn
 from vae_plots import plot_distribution, save_loss
 import torchvision
-from torchvision import datasets, transforms
 import pyro
 import matplotlib.pyplot as plt
 
-from ae import AE_class
-from data_loader import DataSet, DataSet2, RawDataSet, EffectedDataSet, EffectedDataSetSplited
-from data_loader import CLASSES as CLASSES
+from Methods.AE.ae import AE_class
+from Methods.VAE.data_loader import DataSet, RawDataSet, EffectedDataSet, EffectedDataSetSplited
+from Methods.VAE.data_loader import CLASSES as CLASSES
 
 
 criterion = nn.BCELoss(reduction='sum')

@@ -8,9 +8,9 @@ from torchvision import datasets, transforms
 import pyro
 import matplotlib.pyplot as plt
 
-from ae import AE
-from data_loader import DataSet, DataSet2, RawDataSet, EffectedDataSet, EffectedDataSetSplited
-from data_loader import CLASSES as CLASSES
+from Methods.AE.ae import AE
+from Methods.VAE.data_loader import DataSet, DataSet2, RawDataSet, EffectedDataSet, EffectedDataSetSplited
+from Methods.VAE.data_loader import CLASSES as CLASSES
 
 
 criterion = nn.BCELoss(reduction='sum')
@@ -29,11 +29,11 @@ def main(args):
     batch_size = 100
     z_dim = 100
     print("load training ...")
-    trainset = EffectedDataSetSplited(path="./data/cleaned_dataset/train_set.csv",
-                                      label_path="./data/cleaned_dataset/train_label.csv",
+    trainset = EffectedDataSetSplited(path="../../data/cleaned_dataset/train_set.csv",
+                                      label_path="../../data/cleaned_dataset/train_label.csv",
                                       normalize=True)
-    evalset = EffectedDataSetSplited(path="./data/cleaned_dataset/eval_set.csv",
-                                     label_path="./data/cleaned_dataset/eval_label.csv",
+    evalset = EffectedDataSetSplited(path="../../data/cleaned_dataset/eval_set.csv",
+                                     label_path="../../data/cleaned_dataset/eval_label.csv",
                                      normalize=False)
     #trainset = EffectedDataSet(path="./data/raw_data/old_compounds/", label_path="./data/raw_data/effected_compounds_pvalue_frames_labeled.csv",
     #                      input_dimension=568)

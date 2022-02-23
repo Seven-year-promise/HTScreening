@@ -3,8 +3,9 @@ import csv
 import numpy as np
 import tensorflow as tf
 from sklearn.preprocessing import Normalizer
+import os
 import time
-
+from data_loader import load_cleaned_data
 from gpflow.kernels import RBF
 from gpflow.likelihoods import MultiClass, Bernoulli
 from scipy.cluster.vq import kmeans2
@@ -13,43 +14,15 @@ from scipy.stats import mode
 from deep_gp import DeepGP
 from utils import plot_tsne, plot_tsne_no_class
 
-def load_data():
-    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data(path="mnist.npz")
-    x_train = (x_train.astype(np.float64) / 255.0) - 0.5
-    x_train = x_train.reshape(x_train.shape[0], -1)
-    x_test = (x_test.astype(np.float64) / 255.0) - 0.5
-    x_test = x_test.reshape(x_test.shape[0], -1)
-    y_train = y_train.reshape(-1, 1)
-    y_test = y_test.reshape(-1, 1)
-    return x_train, y_train, x_test, y_test
-
-def load_cleaned_data(path, label_path, normalize):
-    data_list = []
-    data_labels = []
-    with open(path, newline='') as csv_f:
-        read_lines = csv.reader(csv_f, delimiter=",")
-        for j, l in enumerate(read_lines):
-            data_line = [float(i) for i in l]
-            data_list.append(data_line)
-
-    with open(label_path, newline='') as csv_f:
-        read_lines = csv.reader(csv_f, delimiter=",")
-        for j, l in enumerate(read_lines):
-            data_labels = [int(i) for i in l]
-
-    data_list = np.array(data_list)
-    if normalize:
-        transformer = Normalizer().fit(np.array(data_list))
-        data_list = transformer.transform(data_list)
-
-    return data_list, np.array(data_labels)
+LATENT_DIMENSION = 2
+MATH_PATH = "./results/dgp_vae/10-dimension/"
+NUMBER_LAYERS = 4
 
 def make_dgp(num_layers, X, Y, Z):
     kernels = [RBF(variance=2.0, lengthscales=2.0)]
-    layer_sizes = [540]
+    layer_sizes = [540, 256, LATENT_DIMENSION, 256]
     for l in range(num_layers-1):
         kernels.append(RBF(variance=2.0, lengthscales=2.0))
-        layer_sizes.append(30)
     model = DeepGP(X, Y, Z, kernels, layer_sizes, Bernoulli(),
                    num_outputs=540)
 
@@ -90,7 +63,7 @@ def draw_tsne(model, X, labels, batch_size=1000, num_samples=100):
     #print(num_layers, model.num_samples)
     n_batches = max(int(len(X) / batch_size), 1)
     likelihoods, accs = [], []
-    latent_ms = np.zeros((len(X), 30), dtype=np.float)
+    latent_ms = np.zeros((len(X), LATENT_DIMENSION), dtype=np.float)
     for n_b, (x_batch, y_batch) in enumerate(zip(np.split(X, n_batches),
                                 np.split(labels, n_batches))):
         m_each_layer, v_each_layer = model.predict_each_layer(x_batch, num_samples)
@@ -98,7 +71,7 @@ def draw_tsne(model, X, labels, batch_size=1000, num_samples=100):
         latent_ms[(n_b*batch_size):((n_b+1)*batch_size), :] = m_each_layer[-2][0, :, :]
     #labels = np.squeeze(labels, axis=1)
     #print(labels.shape)
-    plot_tsne_no_class(latent_ms, name="dgp_htscreening", save_path="./results/dgp_vae/")
+    plot_tsne_no_class(latent_ms, name="dgp_htscreening", save_path=MATH_PATH)
 
 
 if __name__ == '__main__':
@@ -120,12 +93,14 @@ if __name__ == '__main__':
     batch_size = 100
     num_samples = 1 #guess: for teh reparametrization, number of samples from the distribution of f_mean, f_var
 
-    dgp = make_dgp(2, x_train, y_train, Z)
+    dgp = make_dgp(NUMBER_LAYERS, x_train, y_train, Z)
     optimizer = tf.optimizers.Adam(learning_rate=0.01)
 
+    elbos = []
     for _ in range(100):
         start_time = time.time()
         elbo = training_step(dgp, x_train, y_train, batch_size)
+        elbos.append(elbo)
 
         likelihood, acc = 0, 0 #evaluation_step(dgp, x_test, y_test, batch_size, num_samples)
         duration = time.time() - start_time
@@ -135,7 +110,11 @@ if __name__ == '__main__':
     print(dgp)
     checkpoint = tf.train.Checkpoint(model=dgp)
     #save_path = checkpoint.save("./results/dgp_vae/dgp_vae/")
-    manager = tf.train.CheckpointManager(checkpoint, "./results/dgp_vae/models/", max_to_keep=3)
+    manager = tf.train.CheckpointManager(checkpoint, MATH_PATH + "models/", max_to_keep=3)
     manager.save()
+
+    with open(os.path.join(MATH_PATH + "models/", "elbo_loss.txt"), "a+") as f:
+        for i, e_l in enumerate(elbos):
+            f.write("Epoch {}    elbo loss: {}    \n".format(i, e_l))
     #tf.saved_model.save(dgp, "./results/dgp_vae/dgp_vae/")
-    draw_tsne(dgp, x_test, test_label, batch_size, num_samples)
+    #draw_tsne(dgp, x_test, test_label, batch_size, num_samples)

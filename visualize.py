@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 import seaborn as sns
-from Methods.PCA.utils import load_data
+from Methods.PCA.data_loader import load_data
 from Methods.PCA.pca_dim_reduce import try_PCA_with_torch
 from Methods.PCA.PCA import PCA_torch
 

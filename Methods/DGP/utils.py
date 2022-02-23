@@ -2,6 +2,7 @@ import gpflow
 import tensorflow as tf
 from gpflow.likelihoods import Likelihood, Gaussian
 import numpy as np
+from data_loader import RAW_CLASSES
 
 class BroadcastingLikelihood(Likelihood):
     """
@@ -249,7 +250,7 @@ def plot_tsne_train_eval_by_compound(z_loc, labels, name, save_path="./vae_resul
     #classes = classes.detach().cpu().numpy()
     color0 = plt.cm.Set1(0)
     color1 = plt.cm.Set1(1)
-    color2 = plt.cm.Set1(2)
+    color2 = plt.cm.Set1(3)
     for c in range(130):
         #ind_vec = np.zeros_like(classes)
         #ind_vec[:, ic] = 1
@@ -263,10 +264,129 @@ def plot_tsne_train_eval_by_compound(z_loc, labels, name, save_path="./vae_resul
             continue
         fig = plt.figure()
 
-        plt.scatter(z_embed[:, 0], z_embed[:, 1], s=10, color=color0, alpha=0.05, label="all")
-        plt.scatter(train_comp_data[:, 0], train_comp_data[:, 1], s=10, color=color1, label = "train C" + str(c))
-        plt.scatter(eval_comp_data[:, 0], eval_comp_data[:, 1], s=10, color=color2, label="eval C" + str(c))
+        plt.scatter(z_embed[:, 0], z_embed[:, 1], s=5, color=color0, alpha=0.05, label="all")
+        plt.scatter(train_comp_data[:, 0], train_comp_data[:, 1], s=5, color=color1, label = "train C" + str(c))
+        plt.scatter(np.average(train_comp_data,axis=0)[0], np.average(train_comp_data,axis=0)[1], s=100, alpha=0.8, color=color1)
+        plt.scatter(eval_comp_data[:, 0], eval_comp_data[:, 1], s=5, color=color2, label="eval C" + str(c))
+        plt.scatter(np.average(eval_comp_data, axis=0)[0], np.average(eval_comp_data, axis=0)[1], s=100, alpha=0.8, color=color2)
         plt.legend(loc="best")
         plt.title("Latent Variable T-SNE per Class")
         fig.savefig(save_path + str(name) + "_embedding_" + str(c) + ".png")
+        plt.clf()
+
+
+def plot_2Ddistribution_train_eval_by_compound(z_loc, labels, name, save_path="./vae_results/"):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from sklearn.manifold import TSNE
+
+    train_num = len(z_loc["train"])
+    eval_num = len(z_loc["eval"])
+    all_data = np.zeros((train_num+eval_num, z_loc["train"].shape[1]), np.float)
+    all_data[:train_num, :] = z_loc["train"]
+    all_data[train_num:, :] = z_loc["eval"]
+    #model_tsne = TSNE(n_components=2, random_state=0)
+    z_states = all_data #.detach().cpu().numpy()
+    z_embed = z_states # model_tsne.fit_transform(z_states)
+    z_embed_all = {}
+    z_embed_all["train"] = z_embed[:train_num, :]
+    z_embed_all["eval"] = z_embed[train_num:, :]
+    #classes = classes.detach().cpu().numpy()
+    color0 = plt.cm.Set1(0)
+    color1 = plt.cm.Set1(1)
+    color2 = plt.cm.Set1(3)
+    for c in range(130):
+        #ind_vec = np.zeros_like(classes)
+        #ind_vec[:, ic] = 1
+        train_inds = labels["train"] == c
+        eval_inds = labels["eval"] == c
+        train_comp_data = z_embed_all["train"][train_inds]
+        eval_comp_data = z_embed_all["eval"][eval_inds]
+        num_train_comp_data = train_comp_data.shape[0]
+        num_eval_comp_data = eval_comp_data.shape[0]
+        if (num_train_comp_data < 1) and (num_eval_comp_data < 1):
+            continue
+        fig = plt.figure()
+
+        plt.scatter(z_embed[:, 0], z_embed[:, 1], s=5, color=color0, alpha=0.05, label="all")
+        plt.scatter(train_comp_data[:, 0], train_comp_data[:, 1], s=5, color=color1, label = "train C" + str(c))
+        plt.scatter(np.average(train_comp_data,axis=0)[0], np.average(train_comp_data,axis=0)[1], s=100, alpha=0.8, color=color1)
+        plt.scatter(eval_comp_data[:, 0], eval_comp_data[:, 1], s=5, color=color2, label="eval C" + str(c))
+        plt.scatter(np.average(eval_comp_data, axis=0)[0], np.average(eval_comp_data, axis=0)[1], s=100, alpha=0.8, color=color2)
+        #plt.xlim(-1.45, -1.3)
+        #plt.ylim(-0.7, -0.55)
+        plt.legend(loc="best")
+        plt.title("Latent Variable first 2D per Class")
+        fig.savefig(save_path + str(name) + "_embedding_" + str(c) + ".png")
+        plt.clf()
+
+def plot_2Ddistribution_train_eval_by_action_mode(z_loc, labels, action_modes, name, save_path="./vae_results/"):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from sklearn.manifold import TSNE
+
+    train_num = len(z_loc["train"])
+    eval_num = len(z_loc["eval"])
+    all_data = np.zeros((train_num+eval_num, z_loc["train"].shape[1]), np.float)
+    all_data[:train_num, :] = z_loc["train"]
+    all_data[train_num:, :] = z_loc["eval"]
+    #model_tsne = TSNE(n_components=2, random_state=0)
+    z_states = all_data #.detach().cpu().numpy()
+    z_embed = z_states # model_tsne.fit_transform(z_states)
+    z_embed_all = {}
+    z_embed_all["train"] = z_embed[:train_num, :]
+    z_embed_all["eval"] = z_embed[train_num:, :]
+    #classes = classes.detach().cpu().numpy()
+    def get_key(dict, value):
+        for k, v in dict.items():
+            if v == value:
+                return k
+        return "None"
+    colors = ["tab:blue", "tab:gray", "tab:pink", "tab:red", "tab:green",
+              "tab:purple", "tab:orange", "tab:cyan", "tab:olive", "tab:brown"]
+
+    for a_name, a_num in RAW_CLASSES.items():
+        print(a_name, a_num)
+        fig = plt.figure()
+        color0 = plt.cm.Set1(0)
+        color1 = plt.cm.Set1(1)
+        color2 = plt.cm.Set1(3)
+        plt.scatter(z_embed[:, 0], z_embed[:, 1], s=5, color=color0, alpha=0.25, label="all")
+        train_action_data = []
+        eval_action_data = []
+        for c in range(130):
+            train_inds = labels["train"] == c
+            eval_inds = labels["eval"] == c
+            train_comp_data = z_embed_all["train"][train_inds]
+            eval_comp_data = z_embed_all["eval"][eval_inds]
+            num_train_comp_data = train_comp_data.shape[0]
+            num_eval_comp_data = eval_comp_data.shape[0]
+            if (num_train_comp_data < 1) and (num_eval_comp_data < 1):
+                continue
+            if action_modes[c] != a_num:
+                continue
+            print(c, action_modes[c], a_num)
+
+            for n_t_c in range(num_train_comp_data):
+                train_action_data.append(train_comp_data[n_t_c, :])
+            for n_e_c in range(num_eval_comp_data):
+                eval_action_data.append(eval_comp_data[n_e_c, :])
+        train_action_data = np.array(train_action_data)
+        eval_action_data = np.array(eval_action_data)
+
+        plt.scatter(train_action_data[:, 0], train_action_data[:, 1], s=5, color=color1, label = a_name)
+        plt.scatter(np.average(train_action_data,axis=0)[0], np.average(train_action_data,axis=0)[1], s=100, alpha=0.8, color=color1)
+        plt.scatter(eval_action_data[:, 0], eval_action_data[:, 1], s=5, color=color2, label=a_name)
+        plt.scatter(np.average(eval_action_data, axis=0)[0], np.average(eval_action_data, axis=0)[1], s=100, alpha=0.8, color=color2)
+        #plt.xlim(-1.45, -1.3)
+        #plt.ylim(-0.7, -0.55)
+        plt.legend(loc="best")
+        plt.title("Latent Variable first 2D per action mode")
+        fig.savefig(save_path + str(name) + "_embedding_action" + str(a_num) + ".png")
         plt.clf()

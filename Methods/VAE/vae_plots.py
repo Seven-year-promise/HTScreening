@@ -1,7 +1,7 @@
 import torch
 import cv2
 import numpy as np
-from data_loader import RAW_CLASSES as CLASSES
+from Methods.VAE.data_loader import RAW_CLASSES as CLASSES
 
 def plot_conditional_samples_ssvae(ssvae, visdom_session):
     """
