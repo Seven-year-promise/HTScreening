@@ -2,7 +2,7 @@ import gpflow
 import tensorflow as tf
 from gpflow.likelihoods import Likelihood, Gaussian
 import numpy as np
-from data_loader import RAW_CLASSES
+from data_loader import RAW_CLASSES, CLASSES
 
 class BroadcastingLikelihood(Likelihood):
     """
@@ -317,7 +317,7 @@ def plot_2Ddistribution_train_eval_by_compound(z_loc, labels, name, save_path=".
         plt.scatter(eval_comp_data[:, 0], eval_comp_data[:, 1], s=5, color=color2, label="eval C" + str(c))
         plt.scatter(np.average(eval_comp_data, axis=0)[0], np.average(eval_comp_data, axis=0)[1], s=100, alpha=0.8, color=color2)
         #plt.xlim(-1.45, -1.3)
-        #plt.ylim(-0.7, -0.55)
+        plt.ylim(-0.7, -0.55)
         plt.legend(loc="best")
         plt.title("Latent Variable first 2D per Class")
         fig.savefig(save_path + str(name) + "_embedding_" + str(c) + ".png")
@@ -390,3 +390,34 @@ def plot_2Ddistribution_train_eval_by_action_mode(z_loc, labels, action_modes, n
         plt.title("Latent Variable first 2D per action mode")
         fig.savefig(save_path + str(name) + "_embedding_action" + str(a_num) + ".png")
         plt.clf()
+
+def plot_tsne_by_action(z_loc, classes, name, save_path="./vae_results/"):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from sklearn.manifold import TSNE
+
+    model_tsne = TSNE(n_components=2, random_state=0)
+    z_states = z_loc #.detach().cpu().numpy()
+    z_embed = model_tsne.fit_transform(z_states)
+    #classes = classes.detach().cpu().numpy()
+    def get_key(dict, value):
+        for k, v in dict.items():
+            if v == value:
+                return k
+        return "None"
+
+    fig = plt.figure()
+    for ic in range(4):
+        #ind_vec = np.zeros_like(classes)
+        #ind_vec[:, ic] = 1
+        ind_class = classes[:, 0] == ic
+        print(ind_class)
+        color = plt.cm.Set1(ic)
+        action_name = get_key(CLASSES, ic)
+        plt.scatter(z_embed[ind_class, 0], z_embed[ind_class, 1], s=10, label=action_name, color=color)
+        plt.title("Latent Variable T-SNE per action mode")
+        fig.savefig(save_path + str(name) + "_embedding_" + str(ic) + ".png")
+    fig.savefig(save_path + str(name) + "_embedding.png")

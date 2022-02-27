@@ -6,7 +6,7 @@ from sklearn.preprocessing import Normalizer
 
 LATENT_DIMENSION = 2
 
-CLASSES = {"Wildtype": 0,
+CLASSES = {"WT_control": 0,
            "TRPV agonist": 1,
            "GABAA allosteric antagonist": 2,
            "GABAA pore blocker": 3}
@@ -75,4 +75,22 @@ def load_cleaned_data(path, label_path, normalize):
 
     return data_list, np.array(data_labels)
 
+def load_effected_data(path, normalize):
+    data_list = []
+    data_labels = []
+    with open(path, newline='') as csv_f:
+        read_lines = csv.reader(csv_f, delimiter=",")
+        for j, l in enumerate(read_lines):
+            if j > 0:
+                data_line = [float(i) for i in l[1:-1]]
+                data_list.append(data_line)
+                data_labels.append(CLASSES[l[-1]])
+
+    data_list = np.array(data_list)
+    if normalize:
+        transformer = Normalizer().fit(np.array(data_list))
+        data_list = transformer.transform(data_list)
+    print("number of data", len(data_labels))
+    print("dimension of data", data_list.shape[1])
+    return data_list, np.array(data_labels).reshape(-1, 1)
 
