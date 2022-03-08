@@ -23,6 +23,20 @@ RAW_CLASSES = {"Wildtype": 0,
                "unknown": 9
                }
 
+def combine_data(data1, data2, label1, label2):
+    num1 = data1.shape[0]
+    num2 = data2.shape[0]
+
+    all_data = np.zeros((num1+num2, data1.shape[1]))
+    all_labels = np.zeros((num1+num2))
+
+    all_data[:num1, :] = data1
+    all_labels[:num1] = label1
+    all_data[num1:, :] = data2
+    all_labels[num1:] = label2
+
+    return all_data, all_labels
+
 def load_action_mode(path):
     """
     return: key (compound) and value (action mode) are both integar
