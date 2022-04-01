@@ -2,50 +2,9 @@ import matplotlib.pyplot as plt
 import csv
 import numpy as np
 from sklearn.preprocessing import Normalizer
+from Analysis import f_one_way_test
+from utils import CLASSES, load_effected_data_feature_median, exist_key, get_key
 
-CLASSES = {"Wildtype": 0,
-           "TRPV agonist": 1,
-           "GABAA allosteric antagonist": 2,
-           "GABAA pore blocker": 3}
-
-def load_effected_data(path):
-    compounds = []
-    data_list = []
-    data_labels = []
-    with open(path, newline='') as csv_f:
-        read_lines = csv.reader(csv_f, delimiter=",")
-        for j, l in enumerate(read_lines):
-            if j > 0:
-                action_name = l[-2]
-                if exist_key(CLASSES, action_name):
-                    comp_name = l[0]
-                    #print(comp_name)
-                    if comp_name[0] == "s":
-                        compound = 0
-                    else:
-                       compound = int(comp_name[1:])
-                    compounds.append(compound)
-                    data_line = [float(i) for i in l[1:-2]]
-                    data_list.append(data_line)
-                    data_labels.append(CLASSES[l[-2]])
-
-    print("number of data", len(data_labels))
-    print("dimension of data", len(data_list[0]))
-    #print(compounds)
-    return np.array(data_list), np.array(compounds), np.array(data_labels)
-
-def exist_key(dict, key):
-    for k, v in dict.items():
-        if k == key:
-            return True
-
-    return False
-
-def get_key(dict, value):
-    for k, v in dict.items():
-        if v == value:
-            return k
-    return "None"
 
 def visualize_action(data, actions, num_actions, save_path):
     fig, axs = plt.subplots(num_actions, figsize=(30, 10))
@@ -66,6 +25,7 @@ def visualize_action(data, actions, num_actions, save_path):
     fig.savefig(save_path + "median14feature_action.png")
 
 def visualize_action_box_plot(data, actions, num_actions, save_path):
+    F, p = f_one_way_test(data, actions)
     fig, axs = plt.subplots(num_actions, figsize=(30, 10))
     for a in range(num_actions):
         action_inds = actions==a
@@ -90,11 +50,13 @@ def visualize_action_box_plot(data, actions, num_actions, save_path):
         #plt.xticks(fontsize=14, fontname="Times New Roman")
         #plt.yticks(fontsize=14, fontname="Times New Roman")
         #plt.title(ylabels[2], fontname="Times New Roman", fontsize=14)
-
+    for i, (f_v, p_v) in enumerate(zip(F, p)):
+        axs[0].text(i, 0.108, s="F:" + str(round(f_v, 4)), color="tab:red")
+        axs[0].text(i, 0.101, s="p:" + str(round(p_v, 4)), color="tab:red")
     plt.tight_layout()
     #plt.show()
-    fig.savefig(save_path + "median14feature_action_box_plot_scale.png")
+    fig.savefig(save_path + "median14feature_action_box_plot_scale-with_anova.png")
 
 if __name__ == "__main__":
-    data, comps, actions = load_effected_data(path="/srv/yanke/PycharmProjects/HTScreening/data/data_median_all_label.csv")
+    data, comps, actions = load_effected_data_feature_median(path="/srv/yanke/PycharmProjects/HTScreening/data/data_median_all_label.csv")
     visualize_action_box_plot(data, actions, 4, save_path="./feature_median_14/")

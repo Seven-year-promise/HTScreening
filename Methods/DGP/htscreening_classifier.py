@@ -5,7 +5,7 @@ import tensorflow as tf
 from sklearn.preprocessing import Normalizer
 import os
 import time
-from data_loader import load_cleaned_data, load_effected_data
+from data_loader import load_cleaned_data, load_effected_data, load_filtered_effected_data, load_effected_action_data, load_effected_action_data_dimension
 from gpflow.kernels import RBF
 from gpflow.likelihoods import MultiClass, Bernoulli
 from scipy.cluster.vq import kmeans2
@@ -15,7 +15,7 @@ from deep_gp import DeepGP
 from utils import plot_tsne, plot_tsne_no_class
 
 LATENT_DIMENSION = 30
-MATH_PATH = "./results/dgp_vae/class/split/30-dimension/"
+MATH_PATH = "./results/dgp_vae/effected/class/ori/binary_all/"
 NUMBER_LAYERS = 4
 
 def make_dgp(num_layers, X, Y, Z):
@@ -23,8 +23,8 @@ def make_dgp(num_layers, X, Y, Z):
     layer_sizes = [541, 256, 128, LATENT_DIMENSION]
     for l in range(num_layers-1):
         kernels.append(RBF(variance=2.0, lengthscales=2.0))
-    model = DeepGP(X, Y, Z, kernels, layer_sizes, MultiClass(4),
-                   num_outputs=4)
+    model = DeepGP(X, Y, Z, kernels, layer_sizes, MultiClass(2),
+                   num_outputs=2)
 
     # init hidden layers to be near deterministic
     for layer in model.layers[:-1]:
@@ -47,6 +47,7 @@ def training_step(model, X, Y, batch_size=1000):
         """
         x_batch = X[patch_choice, :]
         y_batch = Y[patch_choice, :]
+        #print(x_batch.shape, y_batch.shape)
         with tf.GradientTape(watch_accessed_variables=False) as tape:
             tape.watch(dgp.trainable_variables)
             objective = -model.elbo((x_batch, y_batch))
@@ -94,9 +95,16 @@ def draw_tsne(model, X, labels, batch_size=1000, num_samples=100):
 
 
 if __name__ == '__main__':
-    x_train, y_train = load_effected_data(path="/srv/yanke/PycharmProjects/HTScreening/data/effected_dataset/train_set.csv",
-                          normalize=False)
 
+    x_train, y_train = load_effected_action_data(path="/srv/yanke/PycharmProjects/HTScreening/data/effected_compounds_cleaned_ori_data.csv",
+                                                 # path="/srv/yanke/PycharmProjects/HTScreening/data/effected_compounds_fishes_labeled.csv",
+                          normalize=False, actions=[0, 1]) #, del_d=1)
+    """
+    x_train, y_train = load_filtered_effected_data(
+        path="/srv/yanke/PycharmProjects/HTScreening/Methods/DGP/results/dgp_vae/effected/saved_data/2d/0_9_25/filtered_comp_data_action.csv",
+        normalize=False)
+    """
+    #print(x_train, y_train)
     #x_test, test_label = load_cleaned_data(path="/srv/yanke/PycharmProjects/HTScreening/data/cleaned_dataset/train_set.csv",
     #                      label_path="/srv/yanke/PycharmProjects/HTScreening/data/cleaned_dataset/train_label.csv",
     #                      normalize=False)
@@ -115,12 +123,14 @@ if __name__ == '__main__':
     optimizer = tf.optimizers.Adam(learning_rate=0.01)
 
     elbos = []
+    accs = []
     for _ in range(100):
         start_time = time.time()
         elbo = training_step(dgp, x_train, y_train, batch_size)
         elbos.append(elbo)
 
         likelihood, acc = evaluation_step(dgp, x_train, y_train, batch_size, num_samples)
+        accs.append(acc)
         duration = time.time() - start_time
         print(f"ELBO: {elbo}, Likelihood: {likelihood}, Acc: {acc} [{duration}]")
     #dgp.predict_f_compiled = tf.function(dgp.predict_each_layer,
@@ -134,5 +144,9 @@ if __name__ == '__main__':
     with open(os.path.join(MATH_PATH + "models/", "elbo_loss.txt"), "a+") as f:
         for i, e_l in enumerate(elbos):
             f.write("Epoch {}    elbo loss: {}    \n".format(i, e_l))
+
+    with open(os.path.join(MATH_PATH + "models/", "ACC.txt"), "a+") as f:
+        for i, ac in enumerate(accs):
+            f.write("Epoch {}    acc: {}    \n".format(i, ac))
     #tf.saved_model.save(dgp, "./results/dgp_vae/dgp_vae/")
     #draw_tsne(dgp, x_test, test_label, batch_size, num_samples)

@@ -5,7 +5,7 @@ import tensorflow as tf
 from sklearn.preprocessing import Normalizer
 import os
 import time
-from data_loader import load_cleaned_data
+from data_loader import load_cleaned_data, load_effected_data
 from gpflow.kernels import RBF
 from gpflow.likelihoods import MultiClass, Bernoulli
 from scipy.cluster.vq import kmeans2
@@ -15,16 +15,16 @@ from deep_gp import DeepGP
 from utils import plot_tsne, plot_tsne_no_class
 
 LATENT_DIMENSION = 2
-MATH_PATH = "./results/dgp_vae/10-dimension/"
+MATH_PATH = "./results/dgp_vae/effected/ae/2-dimension/"
 NUMBER_LAYERS = 4
 
 def make_dgp(num_layers, X, Y, Z):
     kernels = [RBF(variance=2.0, lengthscales=2.0)]
-    layer_sizes = [540, 256, LATENT_DIMENSION, 256]
+    layer_sizes = [541, 256, LATENT_DIMENSION, 256]
     for l in range(num_layers-1):
         kernels.append(RBF(variance=2.0, lengthscales=2.0))
     model = DeepGP(X, Y, Z, kernels, layer_sizes, Bernoulli(),
-                   num_outputs=540)
+                   num_outputs=541)
 
     # init hidden layers to be near deterministic
     for layer in model.layers[:-1]:
@@ -33,12 +33,23 @@ def make_dgp(num_layers, X, Y, Z):
 
 
 def training_step(model, X, Y, batch_size=1000):
-    n_batches = max(int(len(x_train) / batch_size), 1)
+    n_batches = max(int(len(X) / batch_size), 1)
     elbos = []
-    for x_batch, y_batch in zip(np.split(X, n_batches),
-                                np.split(Y, n_batches)):
+    for n_b in range(n_batches+1):
+        patch_choice = np.random.choice(len(X), batch_size)
+        """
+        if n_b == n_batches:
+            x_batch = X[(n_b * batch_size):, :]
+            y_batch = Y[(n_b * batch_size):, :]
+        else:
+            x_batch = X[(n_b*batch_size):((n_b+1)*batch_size), :]
+            y_batch = Y[(n_b*batch_size):((n_b+1)*batch_size), :]
+        """
+        x_batch = X[patch_choice, :]
+        y_batch = Y[patch_choice, :]
+        #print(x_batch.shape, y_batch.shape)
         with tf.GradientTape(watch_accessed_variables=False) as tape:
-            tape.watch(dgp.trainable_variables)
+            tape.watch(model.trainable_variables)
             objective = -model.elbo((x_batch, y_batch))
             gradients = tape.gradient(objective, dgp.trainable_variables)
         optimizer.apply_gradients(zip(gradients, dgp.trainable_variables))
@@ -75,15 +86,13 @@ def draw_tsne(model, X, labels, batch_size=1000, num_samples=100):
 
 
 if __name__ == '__main__':
-    x_train, train_label = load_cleaned_data(path="/srv/yanke/PycharmProjects/HTScreening/data/cleaned_dataset/train_set.csv",
-                          label_path="/srv/yanke/PycharmProjects/HTScreening/data/cleaned_dataset/train_label.csv",
+    x_train, _ = load_effected_data(path="/srv/yanke/PycharmProjects/HTScreening/data/raw_data/effected_compounds_pvalue_frames_labeled.csv",
                           normalize=False)
 
-    x_test, test_label = load_cleaned_data(path="/srv/yanke/PycharmProjects/HTScreening/data/cleaned_dataset/train_set.csv",
-                          label_path="/srv/yanke/PycharmProjects/HTScreening/data/cleaned_dataset/train_label.csv",
+    x_test, _ = load_effected_data(path="/srv/yanke/PycharmProjects/HTScreening/data/raw_data/effected_compounds_pvalue_frames_labeled.csv",
                           normalize=False)
-    y_train = x_train
-    y_test = x_test
+    #y_train = x_train
+    #y_test = x_test
     #y_train, x_train, y_test, x_test, test_label = y_train[:1000, :], x_train[:1000, :], y_test[:1000, :], x_test[:1000, :], test_label[:1000, :]
     #for i in range(1000):
     #    plt.plot(x_train[i, :])
@@ -93,13 +102,13 @@ if __name__ == '__main__':
     batch_size = 100
     num_samples = 1 #guess: for teh reparametrization, number of samples from the distribution of f_mean, f_var
 
-    dgp = make_dgp(NUMBER_LAYERS, x_train, y_train, Z)
+    dgp = make_dgp(NUMBER_LAYERS, x_train, x_train, Z)
     optimizer = tf.optimizers.Adam(learning_rate=0.01)
 
     elbos = []
     for _ in range(100):
         start_time = time.time()
-        elbo = training_step(dgp, x_train, y_train, batch_size)
+        elbo = training_step(dgp, x_train, x_train, batch_size)
         elbos.append(elbo)
 
         likelihood, acc = 0, 0 #evaluation_step(dgp, x_test, y_test, batch_size, num_samples)

@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import csv
 import numpy as np
 from sklearn.preprocessing import Normalizer
+from data_loader import load_filtered_effected_data
 
 RAW_CLASSES = {"Wildtype": 0,
                "GABAA pore blocker": 1,
@@ -14,6 +15,10 @@ RAW_CLASSES = {"Wildtype": 0,
                "Na channel": 8,
                "unknown": 9
                }
+CLASSES = {"WT_control": 0,
+           "TRPV agonist": 1,
+           "GABAA allosteric antagonist": 2,
+           "GABAA pore blocker": 3}
 
 def load_filtered_data(path):
     compounds = []
@@ -45,7 +50,7 @@ def get_key(dict, value):
             return k
     return "None"
 
-def visualize_action(data, actions, actions_to_show):
+def visualize_selected_action(data, actions, actions_to_show):
     fig, axs = plt.subplots(len(actions_to_show))
     for a, a_s in enumerate(actions_to_show):
         a_ind = RAW_CLASSES[a_s]
@@ -60,6 +65,45 @@ def visualize_action(data, actions, actions_to_show):
         axs[a].margins(x=0)
     plt.tight_layout()
     plt.show()
+
+def visualize_by_action(data, actions):
+    num_actions = np.max(actions)+1
+    fig, axs = plt.subplots(num_actions)
+    for a in range(num_actions):
+        action_inds = actions==a
+        action_data = data[action_inds, :]
+        print(action_inds)
+        for a_d in range(action_data.shape[0]):
+            axs[a].plot(action_data[a_d])
+        axs[a].set_ylabel("motion index")
+        axs[a].set_xlabel("time")
+        axs[a].set_title(get_key(CLASSES, a))
+        axs[a].margins(x=0)
+    plt.tight_layout()
+    plt.show()
+
+def visualize_mu_by_action(data, actions, save_path):
+    num_actions = np.max(actions)+1
+    #fig, axs = plt.subplots(num_actions)
+    color0 = plt.cm.Set1(0)
+    color1 = plt.cm.Set1(1)
+    color2 = plt.cm.Set1(2)
+    color3 = plt.cm.Set1(3)
+    colors = [color0, color1, color2, color3]
+    for a in range(num_actions):
+        action_inds = actions==a
+        action_data = data[action_inds, :]
+        print(action_inds)
+        #axs[a].scatter(data[:, 0], data[:, 1], s=5, color=color0)
+        plt.scatter(action_data[:, 0], action_data[:, 1], s=5, color=colors[a])
+        #axs[a].set_ylabel("motion index")
+        #axs[a].set_xlabel("time")
+        #axs[a].set_title(get_key(CLASSES, a))
+        #axs[a].margins(x=0)
+    #plt.xlim(-5, 1)
+    #plt.ylim(-4, 4)
+    plt.tight_layout()
+    plt.savefig(save_path + "ori_mu2.png")
 
 def visualize_compound(data, actions, compounds, num_compounds, save_path=None):
     for c in range(num_compounds):
@@ -80,6 +124,9 @@ def visualize_compound(data, actions, compounds, num_compounds, save_path=None):
         fig.savefig(save_path + "C" + str(c) + ".png")
 
 if __name__ == "__main__":
-    data, comps, actions = load_filtered_data(path="/srv/yanke/PycharmProjects/HTScreening/Methods/DGP/results/dgp_vae/saved_data/2d/filtered_comp_mu_action.csv")
-    visualize_action(data, actions, ["Wildtype", "TRPV agonist", "GABAA allosteric antagonist", "GABAA pore blocker"])
+    #data, comps, actions = load_filtered_data(path="/srv/yanke/PycharmProjects/HTScreening/Methods/DGP/results/dgp_vae/saved_data/2d/filtered_comp_data_action.csv")
+    data, actions = load_filtered_effected_data(
+        path="/srv/yanke/PycharmProjects/HTScreening/Methods/DGP/results/dgp_vae/effected/saved_data/2d/original_comp_mu_action2.csv", normalize=False)
+    visualize_mu_by_action(data, actions.reshape(-1, ), save_path="/srv/yanke/PycharmProjects/HTScreening/Methods/DGP/visualization/by_actions/effected/")
+    #visualize_action(data, actions.reshape(-1, ), ["Wildtype", "TRPV agonist", "GABAA allosteric antagonist", "GABAA pore blocker"])
     #visualize_compound(data, actions, comps, 130, save_path="./visualization/by_compounds/filtered/")

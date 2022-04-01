@@ -89,6 +89,32 @@ def load_cleaned_data(path, label_path, normalize):
 
     return data_list, np.array(data_labels)
 
+def load_effected_data_comp_action(path, normalize):
+    data_list = []
+    data_labels = []
+    actions = []
+    with open(path, newline='') as csv_f:
+        read_lines = csv.reader(csv_f, delimiter=",")
+        for j, l in enumerate(read_lines):
+            if j > 0:
+                comp_name = l[0].split("_")[0]
+                if comp_name[0] == "W":
+                    comp = 0
+                else:
+                    comp = int(comp_name[1:])
+                data_line = [float(i) for i in l[1:-1]]
+                data_list.append(data_line)
+                data_labels.append(comp)
+                actions.append(CLASSES[l[-1]])
+
+    data_list = np.array(data_list)
+    if normalize:
+        transformer = Normalizer().fit(np.array(data_list))
+        data_list = transformer.transform(data_list)
+    print("number of data", len(actions))
+    print("dimension of data", data_list.shape[1])
+    return data_list, np.array(data_labels).reshape(-1, 1), np.array(actions).reshape(-1, 1)
+
 def load_effected_data(path, normalize):
     data_list = []
     data_labels = []
@@ -99,6 +125,91 @@ def load_effected_data(path, normalize):
                 data_line = [float(i) for i in l[1:-1]]
                 data_list.append(data_line)
                 data_labels.append(CLASSES[l[-1]])
+
+    data_list = np.array(data_list)
+    if normalize:
+        transformer = Normalizer().fit(np.array(data_list))
+        data_list = transformer.transform(data_list)
+    print("number of data", len(data_labels))
+    print("dimension of data", data_list.shape[1])
+    return data_list, np.array(data_labels).reshape(-1, 1)
+
+def load_effected_action_data(path, normalize, actions=[]):
+    data_list = []
+    data_labels = []
+    with open(path, newline='') as csv_f:
+        read_lines = csv.reader(csv_f, delimiter=",")
+        for j, l in enumerate(read_lines):
+            if j > 0:
+                data_line = [float(i) for i in l[1:-2]]
+                data_list.append(data_line)
+                data_labels.append(int(l[-1]))
+
+    data_list = np.array(data_list)
+    data_labels = np.array(data_labels)
+    if normalize:
+        transformer = Normalizer().fit(np.array(data_list))
+        data_list = transformer.transform(data_list)
+    inds = np.zeros((data_labels.shape[0]), np.bool)
+    for a in actions:
+        inds = np.logical_or(data_labels == a, inds)
+
+    data_list = data_list[inds, :]
+    data_labels = (data_labels[inds]>0) * 1
+    print("binary or not?", np.max(data_labels))
+    print("number of data", data_list.shape[0])
+    print("dimension of data", data_list.shape[1])
+    return data_list, data_labels.reshape(-1, 1)
+
+def load_effected_action_data_dimension(path, normalize, actions=[], del_d=1):
+    """
+    delete a certain dimension of the data
+    """
+    data_list = []
+    data_labels = []
+    with open(path, newline='') as csv_f:
+        read_lines = csv.reader(csv_f, delimiter=",")
+        for j, l in enumerate(read_lines):
+            if j > 0:
+                data_line = [float(i) for i in l[1:-1]]
+                data_list.append(data_line)
+                data_labels.append(CLASSES[l[-1]])
+
+    data_list = np.array(data_list)
+    data_labels = np.array(data_labels)
+    if normalize:
+        transformer = Normalizer().fit(np.array(data_list))
+        data_list = transformer.transform(data_list)
+    inds = np.zeros((data_labels.shape[0]), np.bool)
+    for a in actions:
+        inds = np.logical_or(data_labels == a, inds)
+
+
+    data_list = data_list[inds, :]
+    data_labels = (data_labels[inds]>0) * 1
+
+    dimensions = []
+    for i in range(data_list.shape[1]):
+        if i == del_d:
+            dimensions.append(False)
+        else:
+            dimensions.append(True)
+    data_list = data_list[:, dimensions]
+    print("binary or not?", np.max(data_labels))
+    print("number of data", data_list.shape[0])
+    print("dimension of data", data_list.shape[1])
+    return data_list, data_labels.reshape(-1, 1)
+
+def load_filtered_effected_data(path, normalize):
+    data_list = []
+    data_labels = []
+    with open(path, newline='') as csv_f:
+        read_lines = csv.reader(csv_f, delimiter=",")
+        for j, l in enumerate(read_lines):
+            if j > 0:
+                data_line = [float(i) for i in l[1:-1]]
+                data_list.append(data_line)
+                data_labels.append(int(l[-1]))
 
     data_list = np.array(data_list)
     if normalize:
