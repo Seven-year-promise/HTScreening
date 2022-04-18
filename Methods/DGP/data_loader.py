@@ -155,7 +155,8 @@ def load_effected_action_data(path, normalize, actions=[]):
         inds = np.logical_or(data_labels == a, inds)
 
     data_list = data_list[inds, :]
-    data_labels = (data_labels[inds]>0) * 1
+    #data_labels = (data_labels[inds]>0) * 1
+    data_labels = data_labels[inds]-1
     print("binary or not?", np.max(data_labels))
     print("number of data", data_list.shape[0])
     print("dimension of data", data_list.shape[1])

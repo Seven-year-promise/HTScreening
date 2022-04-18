@@ -39,7 +39,7 @@ def load_effected_data(path):
                 data_line = [i for i in l]
                 #print(data_line)
                 data_list.append(data_line)
-                data_labels.append(CLASSES[l[-1]])
+                data_labels.append(int(l[-1]))
 
     return np.array(data_list), np.array(data_labels)
 
@@ -76,6 +76,6 @@ def split_data(datas, labels, save_path):
         eval_csv_writer.writerows(eval_set)
 
 if __name__ == "__main__":
-    datas,labels = load_effected_data(path="/srv/yanke/PycharmProjects/HTScreening/data/raw_data/effected_compounds_pvalue_frames_labeled.csv")
+    datas,labels = load_effected_data(path="/srv/yanke/PycharmProjects/HTScreening/data/effected_compounds_cleaned_ori_data.csv")
 
     split_data(datas, labels, save_path="./data/effected_dataset/")

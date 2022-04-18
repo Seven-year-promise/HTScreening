@@ -7,7 +7,7 @@ import os
 from nn import NN
 from data_loader import EffectedDataSet
 from data_loader import CLASSES
-
+import pandas as pd
 
 criterion = nn.BCELoss(reduction='sum')
 MSE = nn.MSELoss(reduction="sum")
@@ -41,7 +41,7 @@ def main(args):
     eval_loader = torch.utils.data.DataLoader(evalset, batch_size=batch_size,
                                               shuffle=False, num_workers=2)
     # setup the VAE
-    model = NN(input_dim=541, z_dim=z_dim, classes=len(CLASSES))
+    model = NN(input_dim=541, z_dim=z_dim, classes=len(CLASSES)-1)
     if args.cuda:
         model.cuda()
 
@@ -108,6 +108,8 @@ def main(args):
             t_ave_loss = 0.0
             correct_pred = 0
             total_pred = 0
+            y_actual = []
+            y_pred = []
             for t_x, t_l in eval_loader:
                 # if on GPU put mini-batch into CUDA memory
                 if t_x.size(0) != batch_size:
@@ -130,11 +132,17 @@ def main(args):
                 outputs = sm(classification)
                 probs, predictions = torch.max(outputs, 1)
                 for label, prediction in zip(t_l, predictions):
+                    #print(label.cpu().numpy(), prediction.cpu().numpy())
+                    y_actual.append(label.cpu().numpy())
+                    y_pred.append(prediction.cpu().numpy())
                     if label == prediction:
                         correct_pred += 1
                     total_pred += 1
             t_ave_acc = (correct_pred * 100.0) / total_pred
-
+            y_actu = pd.Series(np.array(y_actual).reshape(-1, ), name='Actual')
+            y_pred = pd.Series(np.array(y_pred).reshape(-1, ), name='Predicted')
+            df_confusion = pd.crosstab(y_actu, y_pred, rownames=['Actual'], colnames=['Predicted'], margins=True)
+            print(df_confusion)
             normalizer_eval = len(eval_loader.dataset)
             eval_loss.append(t_ave_loss / normalizer_eval)
             eval_acc.append(t_ave_acc)
@@ -205,7 +213,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--main_path",
-        default="./results/split/30-dimension/",
+        default="./results/split/",
         help="the path to save",
     )
     args = parser.parse_args()

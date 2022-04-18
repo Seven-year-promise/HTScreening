@@ -13,9 +13,11 @@ from scipy.stats import mode
 
 from deep_gp import DeepGP
 from utils import plot_tsne, plot_tsne_no_class
+from sklearn.metrics import confusion_matrix
+import pandas as pd
 
 LATENT_DIMENSION = 30
-MATH_PATH = "./results/dgp_vae/effected/class/ori/binary_all/"
+MATH_PATH = "./results/dgp_vae/effected/class/ori/multi123/"
 NUMBER_LAYERS = 4
 
 def make_dgp(num_layers, X, Y, Z):
@@ -23,8 +25,8 @@ def make_dgp(num_layers, X, Y, Z):
     layer_sizes = [541, 256, 128, LATENT_DIMENSION]
     for l in range(num_layers-1):
         kernels.append(RBF(variance=2.0, lengthscales=2.0))
-    model = DeepGP(X, Y, Z, kernels, layer_sizes, MultiClass(2),
-                   num_outputs=2)
+    model = DeepGP(X, Y, Z, kernels, layer_sizes, MultiClass(3),
+                   num_outputs=3)
 
     # init hidden layers to be near deterministic
     for layer in model.layers[:-1]:
@@ -61,6 +63,10 @@ def evaluation_step(model, X, Y, batch_size=1000, num_samples=100):
     n_batches = max(int(len(X) / batch_size), 1)
     likelihood = np.zeros((len(X)), dtype=np.float)
     acc = np.zeros((len(X), 1), dtype=np.float)
+    #confusion_m = np.zeros((3,3))
+
+    y_actual = []
+    y_pred = []
     for n_b in range(n_batches + 1):
         if n_b == n_batches:
             x_batch = X[(n_b * batch_size):, :]
@@ -68,6 +74,8 @@ def evaluation_step(model, X, Y, batch_size=1000, num_samples=100):
             m, v = model.predict_y(x_batch, num_samples)
             likelihood[(n_b * batch_size):] = model.predict_log_density((x_batch, y_batch), num_samples)
             acc[(n_b * batch_size):, :] = (mode(np.argmax(m, 2), 0)[0].reshape(y_batch.shape).astype(int) == y_batch.astype(int))
+            y_actual += y_batch.astype(int).tolist()
+            y_pred += mode(np.argmax(m, 2), 0)[0].reshape(y_batch.shape).astype(int).tolist()
         else:
             x_batch = X[(n_b * batch_size):((n_b + 1) * batch_size), :]
             y_batch = Y[(n_b * batch_size):((n_b + 1) * batch_size), :]
@@ -75,7 +83,16 @@ def evaluation_step(model, X, Y, batch_size=1000, num_samples=100):
             likelihood[(n_b * batch_size):((n_b + 1) * batch_size)] = model.predict_log_density((x_batch, y_batch), num_samples)
             acc[(n_b * batch_size):((n_b + 1) * batch_size), :] = (
                         mode(np.argmax(m, 2), 0)[0].reshape(y_batch.shape).astype(int) == y_batch.astype(int))
+            y_actual += y_batch.astype(int).tolist()
+            y_pred += mode(np.argmax(m, 2), 0)[0].reshape(y_batch.shape).astype(int).tolist()
+        #print(m)
+        #confusion_m += confusion_matrix(y_batch.astype(int), mode(np.argmax(m, 2), 0)[0].reshape(y_batch.shape).astype(int))
+    #print(confusion_m)
 
+    y_actu = pd.Series(np.array(y_actual).reshape(-1,), name='Actual')
+    y_pred = pd.Series(np.array(y_pred).reshape(-1,), name='Predicted')
+    df_confusion = pd.crosstab(y_actu, y_pred)
+    print(df_confusion)
     return np.mean(likelihood), np.mean(acc)
 
 def draw_tsne(model, X, labels, batch_size=1000, num_samples=100):
@@ -98,7 +115,7 @@ if __name__ == '__main__':
 
     x_train, y_train = load_effected_action_data(path="/srv/yanke/PycharmProjects/HTScreening/data/effected_compounds_cleaned_ori_data.csv",
                                                  # path="/srv/yanke/PycharmProjects/HTScreening/data/effected_compounds_fishes_labeled.csv",
-                          normalize=False, actions=[0, 1]) #, del_d=1)
+                          normalize=False, actions=[1, 2, 3]) #, del_d=1)
     """
     x_train, y_train = load_filtered_effected_data(
         path="/srv/yanke/PycharmProjects/HTScreening/Methods/DGP/results/dgp_vae/effected/saved_data/2d/0_9_25/filtered_comp_data_action.csv",

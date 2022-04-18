@@ -8,24 +8,24 @@ import matplotlib.pyplot as plt
 
 def get_wt_data(path):
     all_data = {}
-    wt_files = os.listdir(path)
-    for w_f in wt_files:
-        type_name = w_f[0]
-        if not(type_name in all_data):
-            all_data[type_name] = []
-        with open(path+w_f, newline='') as csv_f:
-            read_lines = csv.reader(csv_f, delimiter=",")
-            wt_d_l = []
-            for j, l in enumerate(read_lines):
-                if j > 0:
-                    data_line = [float(i) for i in l]
-                    wt_d_l.append(data_line)
-            wt_d_l = np.array(wt_d_l, np.float)
-            print(wt_d_l.shape)
+    wt_folders = os.listdir(path)
+    for w_folder in wt_folders:
+        all_data[w_folder] = []
+        wt_files = os.listdir(path+w_folder+"/")
+        for w_f in wt_files:
+            with open(path+w_folder+"/"+w_f, newline='') as csv_f:
+                read_lines = csv.reader(csv_f, delimiter=",")
+                wt_d_l = []
+                for j, l in enumerate(read_lines):
+                    if j > 0:
+                        data_line = [float(i) for i in l]
+                        wt_d_l.append(data_line)
+                wt_d_l = np.array(wt_d_l, np.float)
+                print(wt_d_l.shape)
 
-            for i in range(wt_d_l.shape[1]):
-                # print(list(d_l[:, i]))
-                all_data[type_name].append(list(wt_d_l[:, i]))
+                for i in range(wt_d_l.shape[1]):
+                    # print(list(d_l[:, i]))
+                    all_data[w_folder].append(list(wt_d_l[:, i]))
 
     return all_data
 
@@ -43,7 +43,8 @@ def visualize(data_dict={}):
         axs[w].margins(x=0)
     plt.tight_layout()
     plt.show()
+
 if __name__ == "__main__":
-    wt_data = get_wt_data(path="/srv/yanke/PycharmProjects/HTScreening/data/cleaned_data/WT/")
+    wt_data = get_wt_data(path="/srv/yanke/PycharmProjects/HTScreening/data/cleaned/all_data/Controls/")
     visualize(wt_data)
     #split_data(datas, labels, save_path="./data/effected_dataset/")

@@ -41,9 +41,10 @@ class EffectedDataSet(data.Dataset):
             read_lines = csv.reader(csv_f, delimiter=",")
             for j, l in enumerate(read_lines):
                 if j > 0:
-                    data_line = [float(i) for i in l[1:-1]]
-                    data_list.append(data_line)
-                    data_labels.append(CLASSES[l[-1]])
+                    if l[-1] != "0":
+                        data_line = [float(i) for i in l[1:-2]]
+                        data_list.append(data_line)
+                        data_labels.append(int(l[-1])-1)
 
         data_list = np.array(data_list)
         if normalize:
