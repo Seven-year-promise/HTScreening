@@ -1,0 +1,9 @@
+1) rename the files and the files are saved in to renamed still separetely
+
+2) clean the data and the files are saved in to cleaned_data still separetely
+
+3) combine the files into one file
+
+4) feature selection manually
+
+5) t-test between the controls and compounds
