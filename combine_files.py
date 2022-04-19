@@ -1,6 +1,7 @@
 import os
 import shutil
 import csv
+import numpy as np
 
 """
 file_formate:
@@ -17,7 +18,7 @@ RyR agonist: 144 [145, 147)
 Na channel: 147 [148, 150)
 complex II inhibitor: 150 [151, 156)
 nAChR allosteric agonist: 156 [157, 159)
-unknown; likely neurotoxin: 159 [160, 171)
+unknown-likely neurotoxin: 159 [160, 171)
 """
 
 RAW_CLASSES = {"Wild type": 0,
@@ -29,14 +30,17 @@ RAW_CLASSES = {"Wild type": 0,
                "GABAA allosteric antagonist": 6,
                "RyR agonist": 7,
                "Na channel": 8,
-               "unknown; likely neurotoxin": 9
+               "complex II inhibitor": 9,
+               "nAChR allosteric agonist": 10,
+               "unknown-likely neurotoxin": 11
                }
 
 
-def get_key(dict, value):
-    for k, v in dict.items():
-        if v == value:
-            return k
+def get_key_dict_list(dict_list, value):
+    for k, v_list in dict_list.items():
+        for v in v_list:
+            if v == value:
+                return k
     return "None"
 
 def combine_file_to(action_path, data_path, save_path):
@@ -48,7 +52,8 @@ def combine_file_to(action_path, data_path, save_path):
         reader_to_lines = []
         reader = csv.reader(a_f, delimiter=",")
         for j, l in enumerate(reader):
-            reader_to_lines.append(j)
+            #print(l[0])
+            reader_to_lines.append(l[0])
         action_with_compounds[reader_to_lines[1]] = [int(i) for i in reader_to_lines[2:30]]
         action_with_compounds[reader_to_lines[30]] = [int(i) for i in reader_to_lines[31:43]]
         action_with_compounds[reader_to_lines[43]] = [int(i) for i in reader_to_lines[44:52]]
@@ -60,18 +65,19 @@ def combine_file_to(action_path, data_path, save_path):
         action_with_compounds[reader_to_lines[150]] = [int(i) for i in reader_to_lines[151:156]]
         action_with_compounds[reader_to_lines[156]] = [int(i) for i in reader_to_lines[157:159]]
         action_with_compounds[reader_to_lines[159]] = [int(i) for i in reader_to_lines[160:171]]
-
+    print("compound action modes:", action_with_compounds)
     all_control_comp_data = []
     # read controls
     control_path = data_path + "Controls/"
     control_folders = os.listdir(control_path)
     for c_folder in control_folders:
-        c_folder_path = control_path + c_folder
+        c_folder_path = control_path + c_folder + "/"
         control_files = os.listdir(c_folder_path)
         for c_f in control_files:
-            with open(c_folder_path + c_f, "r") as l_f:
+            print(c_folder_path + c_f)
+            with open(c_folder_path + c_f, "r") as control_d_f:
                 reader_to_lines = []
-                reader = csv.reader(l_f, delimiter=",")
+                reader = csv.reader(control_d_f, delimiter=",")
                 for j, l in enumerate(reader):
                     reader_to_lines.append([float(i) for i in l])
                 reader_to_lines = np.array(reader_to_lines)
@@ -79,22 +85,21 @@ def combine_file_to(action_path, data_path, save_path):
                     one_control_data = ["C0"] + reader_to_lines[:, i].tolist() + ["Wild type"] + [0]
                     all_control_comp_data.append(one_control_data)
 
-
-
     # read compounds
-    comp_path = data_path + "xxx"
+    comp_path = data_path + "Compounds/"
     comp_files = os.listdir(comp_path)
     for comp_f in comp_files:
-        with open(comp_path + comp_f, "r") as comp_f:
-            comp_name = comp_f[:-4].split("_")[-1]
+        print(comp_path + comp_f)
+        with open(comp_path + comp_f, "r") as comp_d_f:
+            comp_name = comp_f[:-4].split("_")[0]
             comp_id = int(comp_name[1:])
             reader_to_lines = []
-            reader = csv.reader(comp_f, delimiter=",")
+            reader = csv.reader(comp_d_f, delimiter=",")
             for j, l in enumerate(reader):
                 reader_to_lines.append([float(i) for i in l])
             reader_to_lines = np.array(reader_to_lines)
             for i in range(reader_to_lines.shape[1]):
-                action_name = get_key(action_with_compounds, comp_id)
+                action_name = get_key_dict_list(action_with_compounds, comp_id)
                 action_id = RAW_CLASSES[action_name]
                 one_comp_data = [comp_name] + reader_to_lines[:, i].tolist() + [action_name] + [action_id]
                 all_control_comp_data.append(one_comp_data)
@@ -108,4 +113,4 @@ if __name__ == "__main__":
     action_path = "./data/OldCompoundsMoA.csv"
     data_path = "./data/cleaned/all_data/"
     save_path = "./data/cleaned/"
-    clean_file_to(action_path, data_path, save_path)
+    combine_file_to(action_path, data_path, save_path)
