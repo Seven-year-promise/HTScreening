@@ -1,5 +1,5 @@
 import numpy as np
-
+import csv
 """
 extract feature based on
 [0:187) before the first light
@@ -33,6 +33,6 @@ def extract_feature_to(data_path, save_path):
         csv_writer.writerows(all_data_feature)
 
 if __name__ == "__main__":
-    data_path = "./data/cleaned/all_data/"
-    save_path = "./data/cleaned/"
-    combine_file_to(action_path, data_path, save_path)
+    data_path = "./data/cleaned/all_compounds_ori_fish_with_action.csv"
+    save_path = "./data/featured/"
+    extract_feature_to(data_path, save_path)
