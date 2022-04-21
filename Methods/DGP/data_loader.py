@@ -11,7 +11,7 @@ CLASSES = {"WT_control": 0,
            "GABAA allosteric antagonist": 2,
            "GABAA pore blocker": 3}
 
-RAW_CLASSES = {"Wildtype": 0,
+RAW_CLASSES = {"Wild type": 0,
                "GABAA pore blocker": 1,
                "vesicular ACh transport antagonist": 2,
                "nAChR orthosteric agonist": 3,
@@ -20,7 +20,9 @@ RAW_CLASSES = {"Wildtype": 0,
                "GABAA allosteric antagonist": 6,
                "RyR agonist": 7,
                "Na channel": 8,
-               "unknown": 9
+               "complex II inhibitor": 9,
+               "nAChR allosteric agonist": 10,
+               "unknown-likely neurotoxin": 11
                }
 
 def combine_data(data1, data2, label1, label2):
