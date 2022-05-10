@@ -16,22 +16,45 @@ from utils import plot_tsne, plot_tsne_no_class
 from sklearn.metrics import confusion_matrix
 import pandas as pd
 
-LATENT_DIMENSION = 30
-MATH_PATH = "./results/dgp_vae/effected/class/ori/multi123/"
+LATENT_DIMENSION = 10
+MATH_PATH = "./results/dgp_vae/effected/class/22-feature/binary/"
 NUMBER_LAYERS = 4
 
 def make_dgp(num_layers, X, Y, Z):
     kernels = [RBF(variance=2.0, lengthscales=2.0)]
-    layer_sizes = [541, 256, 128, LATENT_DIMENSION]
+    layer_sizes = [22, 10, 10, LATENT_DIMENSION]
     for l in range(num_layers-1):
         kernels.append(RBF(variance=2.0, lengthscales=2.0))
-    model = DeepGP(X, Y, Z, kernels, layer_sizes, MultiClass(3),
-                   num_outputs=3)
+    model = DeepGP(X, Y, Z, kernels, layer_sizes, MultiClass(2),
+                   num_outputs=2)
 
     # init hidden layers to be near deterministic
     for layer in model.layers[:-1]:
         layer.q_sqrt.assign(layer.q_sqrt * 1e-5)
     return model
+
+def sample_ratio_control(X, Y, batch_size):
+
+    class_data0 = X[Y[:, 0]==0, :]
+    class_label0 = Y[Y[:, 0]==0, :]
+    patch_choice0 = np.random.choice(len(class_label0), batch_size//2)
+    class_data1 = X[Y[:, 0]>0, :]
+    class_label1 = Y[Y[:, 0]>0, :]
+    patch_choice1 = np.random.choice(len(class_label1), batch_size // 2)
+
+    X_batch = np.zeros((batch_size, X.shape[1]), np.float)
+    Y_batch = np.zeros((batch_size, Y.shape[1]), np.float)
+
+    X_batch[:batch_size//2] = class_data0[patch_choice0, :]
+    Y_batch[:batch_size // 2] = class_label0[patch_choice0, :]
+
+    X_batch[batch_size // 2:] = class_data1[patch_choice1, :]
+    Y_batch[batch_size // 2:] = class_label1[patch_choice1, :]
+
+    patch_choice = np.random.choice(batch_size, batch_size)
+
+    return X_batch[patch_choice, :], Y_batch[patch_choice, :]
+
 
 
 def training_step(model, X, Y, batch_size=1000):
@@ -49,6 +72,8 @@ def training_step(model, X, Y, batch_size=1000):
         """
         x_batch = X[patch_choice, :]
         y_batch = Y[patch_choice, :]
+        #x_batch, y_batch = sample_ratio_control(X, Y, batch_size)
+        #print(x_batch, y_batch)
         #print(x_batch.shape, y_batch.shape)
         with tf.GradientTape(watch_accessed_variables=False) as tape:
             tape.watch(dgp.trainable_variables)
@@ -113,9 +138,13 @@ def draw_tsne(model, X, labels, batch_size=1000, num_samples=100):
 
 if __name__ == '__main__':
 
-    x_train, y_train = load_effected_action_data(path="/srv/yanke/PycharmProjects/HTScreening/data/effected_compounds_cleaned_ori_data.csv",
+    x_train, y_train = load_effected_action_data(path="/srv/yanke/PycharmProjects/HTScreening/data/effected/effected_feature_train_set.csv",
                                                  # path="/srv/yanke/PycharmProjects/HTScreening/data/effected_compounds_fishes_labeled.csv",
-                          normalize=False, actions=[1, 2, 3]) #, del_d=1)
+                          normalize=False, actions=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) #, del_d=1)
+    x_eval, y_eval = load_effected_action_data(
+        path="/srv/yanke/PycharmProjects/HTScreening/data/effected/effected_feature_eval_set.csv",
+        # path="/srv/yanke/PycharmProjects/HTScreening/data/effected_compounds_fishes_labeled.csv",
+        normalize=False, actions=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])  # , del_d=1)
     """
     x_train, y_train = load_filtered_effected_data(
         path="/srv/yanke/PycharmProjects/HTScreening/Methods/DGP/results/dgp_vae/effected/saved_data/2d/0_9_25/filtered_comp_data_action.csv",
@@ -146,7 +175,7 @@ if __name__ == '__main__':
         elbo = training_step(dgp, x_train, y_train, batch_size)
         elbos.append(elbo)
 
-        likelihood, acc = evaluation_step(dgp, x_train, y_train, batch_size, num_samples)
+        likelihood, acc = evaluation_step(dgp, x_eval, y_eval, batch_size, num_samples)
         accs.append(acc)
         duration = time.time() - start_time
         print(f"ELBO: {elbo}, Likelihood: {likelihood}, Acc: {acc} [{duration}]")

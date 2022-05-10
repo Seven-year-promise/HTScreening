@@ -142,10 +142,9 @@ def load_effected_action_data(path, normalize, actions=[]):
     with open(path, newline='') as csv_f:
         read_lines = csv.reader(csv_f, delimiter=",")
         for j, l in enumerate(read_lines):
-            if j > 0:
-                data_line = [float(i) for i in l[1:-2]]
-                data_list.append(data_line)
-                data_labels.append(int(l[-1]))
+            data_line = [float(i) for i in l[1:-2]]
+            data_list.append(data_line)
+            data_labels.append(int(l[-1]))
 
     data_list = np.array(data_list)
     data_labels = np.array(data_labels)
@@ -157,8 +156,8 @@ def load_effected_action_data(path, normalize, actions=[]):
         inds = np.logical_or(data_labels == a, inds)
 
     data_list = data_list[inds, :]
-    #data_labels = (data_labels[inds]>0) * 1
-    data_labels = data_labels[inds]-1
+    data_labels = (data_labels[inds]>0) * 1
+    #data_labels = data_labels[inds]
     print("binary or not?", np.max(data_labels))
     print("number of data", data_list.shape[0])
     print("dimension of data", data_list.shape[1])
@@ -173,10 +172,9 @@ def load_effected_action_data_dimension(path, normalize, actions=[], del_d=1):
     with open(path, newline='') as csv_f:
         read_lines = csv.reader(csv_f, delimiter=",")
         for j, l in enumerate(read_lines):
-            if j > 0:
-                data_line = [float(i) for i in l[1:-1]]
-                data_list.append(data_line)
-                data_labels.append(CLASSES[l[-1]])
+            data_line = [float(i) for i in l[1:-1]]
+            data_list.append(data_line)
+            data_labels.append(CLASSES[l[-1]])
 
     data_list = np.array(data_list)
     data_labels = np.array(data_labels)

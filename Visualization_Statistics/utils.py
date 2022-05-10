@@ -32,16 +32,22 @@ def load_feature_data_all_by_compound(path):
     :return: the dict format of the feature for each compound
     """
     all_data_dict = {}
+    all_data_action_dict = {}
     with open(path, newline='') as csv_f:
         read_lines = csv.reader(csv_f, delimiter=",")
         for j, l in enumerate(read_lines):
             compound_name = l[0]
             if compound_name not in all_data_dict:
                 all_data_dict[compound_name] = []
+            if compound_name not in all_data_action_dict:
+                all_data_action_dict[compound_name] = []
+                all_data_action_dict[compound_name].append(l[-2])
+                all_data_action_dict[compound_name].append(l[-1])
             data_line = [float(i) for i in l[1:-2]]
             all_data_dict[compound_name].append(data_line)
 
-    return all_data_dict
+
+    return all_data_dict, all_data_action_dict
 
 
 def load_feature_data_all_by_action(path):
@@ -61,6 +67,24 @@ def load_feature_data_all_by_action(path):
 
     return all_data_dict
 
+def load_feature_data_together(path):
+    """
+    :param path: the path of data
+    :return: the compound names, data, action infos (name and index) in three lists
+    """
+    comp_names = []
+    all_data = []
+    action_infos = []
+    with open(path, newline='') as csv_f:
+        read_lines = csv.reader(csv_f, delimiter=",")
+        for j, l in enumerate(read_lines):
+            data_line = [float(i) for i in l[1:-2]]
+            comp_names.append(l[0])
+            all_data.append(data_line)
+            action_infos.append(l[-2:])
+
+    return comp_names, all_data, action_infos
+"""
 def load_effected_data_feature_median(path):
     compounds = []
     data_list = []
@@ -175,3 +199,4 @@ def load_effected_data_feature(path):
     print("dimension of data", len(data_list[0]))
     #print(compounds)
     return np.array(data_list), np.array(compounds), np.array(data_labels)
+"""

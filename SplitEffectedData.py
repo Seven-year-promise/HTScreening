@@ -31,23 +31,21 @@ RAW_CLASSES = {"WT_control": 0,
 
 def load_effected_data(path):
     data_list = []
-    data_labels = []
     with open(path, newline='') as csv_f:
         read_lines = csv.reader(csv_f, delimiter=",")
         for j, l in enumerate(read_lines):
-            if j > 0:
-                data_line = [i for i in l]
-                #print(data_line)
-                data_list.append(data_line)
-                data_labels.append(int(l[-1]))
+            data_line = [i for i in l]
+            #print(data_line)
+            data_list.append(data_line)
 
-    return np.array(data_list), np.array(data_labels)
+    return np.array(data_list)
 
-def split_data(datas, labels, save_path):
-    d_data = len(datas[0])
-    index = ["index"+str(i) for i in range(d_data)]
-    train_set = []
-    eval_set = []
+def split_data(datas, save_path):
+    #d_data = len(datas[0])
+    #index = ["index"+str(i) for i in range(d_data)]
+    train_set = datas[::2, :].tolist()
+    eval_set = datas[1::2, :].tolist()
+    """
     train_set.append(index)
     eval_set.append(index)
     print(labels)
@@ -59,23 +57,21 @@ def split_data(datas, labels, save_path):
             train_set.append(t)
         for e in class_data[1::2, :]:
             eval_set.append(e)
+    """
     print("number of training: ", len(train_set))
     print("number of evaling: ", len(eval_set))
 
     # write for datas
-    with open(save_path + "all.csv", "w") as all_csv:
-        all_csv_writer = csv.writer(all_csv)
-        all_csv_writer.writerows(datas)
 
-    with open(save_path + "train_set.csv", "w") as train_csv:
+    with open(save_path + "effected_feature_train_set.csv", "w") as train_csv:
         train_csv_writer = csv.writer(train_csv)
         train_csv_writer.writerows(train_set)
 
-    with open(save_path + "eval_set.csv", "w") as eval_csv:
+    with open(save_path + "effected_feature_eval_set.csv", "w") as eval_csv:
         eval_csv_writer = csv.writer(eval_csv)
         eval_csv_writer.writerows(eval_set)
 
 if __name__ == "__main__":
-    datas,labels = load_effected_data(path="/srv/yanke/PycharmProjects/HTScreening/data/effected_compounds_cleaned_ori_data.csv")
+    data = load_effected_data(path="/srv/yanke/PycharmProjects/HTScreening/data/effected/effected_compounds_feature_fish_with_action.csv")
 
-    split_data(datas, labels, save_path="./data/effected_dataset/")
+    split_data(data, save_path="/srv/yanke/PycharmProjects/HTScreening/data/effected/")
