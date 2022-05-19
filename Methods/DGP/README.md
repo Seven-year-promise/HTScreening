@@ -13,3 +13,9 @@ Heavily based on a previous implementation of [Doubly-Stochastic-DGP](https://gi
 ```
 
 Includes demos for the step function and MNIST data set.
+
+
+
+some explanation for the ht screening project:
+"htscreening.py" and "htscreening_test.py" are used for the feature extraction based on the auto-encoded DGP
+"htscreening_classifier.py" and "htscreening_classifier_test.py" are used for the classification based on the DGP
