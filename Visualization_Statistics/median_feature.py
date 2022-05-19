@@ -16,12 +16,12 @@ def t_test_visualize_save(data={}, action={}, save_path=""):
             median_data.append([comp_name] + np.median(comp_data, axis=0).tolist() + action[comp_name])
 
 
-    with open(save_path + "median_compounds_feature_max_fish_with_action.csv", "w") as save_csv:
+    with open(save_path + "median_compounds_feature_fish_with_action.csv", "w") as save_csv:
         csv_writer = csv.writer(save_csv)
         csv_writer.writerows(median_data)
 
 
 
 if __name__ == "__main__":
-    feature_data_by_compound, action_dict_by_compound = load_feature_data_all_by_compound(path="/srv/yanke/PycharmProjects/HTScreening/data/featured/all_compounds_feature_max_fish_with_action.csv")
+    feature_data_by_compound, action_dict_by_compound = load_feature_data_all_by_compound(path="/srv/yanke/PycharmProjects/HTScreening/data/featured/all_compounds_feature_fish_with_action.csv")
     t_test_visualize_save(feature_data_by_compound, action_dict_by_compound, save_path="/srv/yanke/PycharmProjects/HTScreening/data/median/")

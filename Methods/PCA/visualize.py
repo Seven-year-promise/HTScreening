@@ -5,8 +5,10 @@ import os
 import csv
 import numpy as np
 from pca_dim_reduce import try_pca_by_compounds, try_pca_by_compounds_with_clustering
-from utils import load_data
-
+from data_loader import  load_feature_data_together, load_data
+from pca_dim_reduce import try_PCA_with_torch
+from sklearn.cluster import KMeans
+from PCA import PCA_torch
 #im = pickle.load(open("./results/pca_with_name/train/VAE_embedding.pickle", "rb"))
 #plt.show()
 
@@ -112,11 +114,45 @@ def visualize_compound_cleaned_after_PCA_clustering(compounds=[], dim_begin = 0,
     #ax = sns.heatmap(plot_data, linewidth=0.5)
     #plt.show()
 
+def visualize_compound_median_after_PCA():
+    compound_names, all_median_data, action_information = \
+        load_feature_data_together(
+            path="/srv/yanke/PycharmProjects/HTScreening/data/median/median_compounds_feature_median_quantile_fish_with_action.csv")
+    c_names = np.array(compound_names)
+    data = np.array(all_median_data)
+    a_infos = np.array(action_information)
+
+    pca = PCA_torch(center=False, n_components=2)
+    new_train = pca.fit_PCA(data)
+
+
+    kmeans = KMeans(n_clusters=12, random_state=0).fit(data)
+    labels = kmeans.labels_
+    print(labels)
+
+    colormap = plt.cm.Dark2.colors
+    for l, color in zip(range(np.max(labels) + 1), colormap):
+        inds = labels == l
+        l_data = data[inds, :]
+        new_l_data = pca.test(l_data)
+
+        for d, c, a in zip(new_l_data, c_names[inds].tolist(), a_infos[inds, :].tolist()):
+            plt.scatter(d[0], d[1], s=15, color=color)
+            plt.text(d[0], d[1], c + "_" + a[1], fontsize=6)
+    plt.text(-0.2, 0.05, "quantile range + median and median", fontsize=16) #"1st + 3rd quantiles and median"
+    plt.ylabel("feature 1")
+    plt.xlabel("feature 2")
+    plt.title("PCA of median feature of each compound")
+    plt.tight_layout()
+    plt.show()
+    plt.clean()
+
 if __name__ == "__main__":
     #visualize(path="./data/raw_data/old_compounds/")
     #trainset = RawDataSet(path="./data/raw_data/old_compounds/", label_path="./data/data_median_all_label.csv")
     #visualize_PCA()
     #visualize_compound_cleaned_after_PCA(["WT", "C5", "C12", "C88", "C105", "C117"], dim_begin=0,
     #                                              dim_end=541)
-    visualize_compound_cleaned_after_PCA_clustering(["WT", "C5", "C105"], dim_begin = 0, dim_end = 541)# ["C6", "C5", "C12", "C88", "C105", "C117"], dim_begin = 0, dim_end = 541) #, "C14", "C20", "C88"]) # 0, 188, 364, 541
+    #visualize_compound_cleaned_after_PCA_clustering(["WT", "C5", "C105"], dim_begin = 0, dim_end = 541)# ["C6", "C5", "C12", "C88", "C105", "C117"], dim_begin = 0, dim_end = 541) #, "C14", "C20", "C88"]) # 0, 188, 364, 541
     #visualize_compound_after_PCA(["WT", "C5", "C12", "C88", "C105", "C117"])
+    visualize_compound_median_after_PCA()

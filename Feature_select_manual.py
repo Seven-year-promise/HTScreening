@@ -6,6 +6,11 @@ extract feature based on
 [187:363) after the first light
 [363:) after the second light
 """
+"""
+two features : 
+1) Qantile 3 
+2) Quantile 1
+"""
 PHASES = [0, 187, 207, 227, 267, 307, 363, 383, 403, 443, 483, -1]
 
 def feature_extract(data):
@@ -14,6 +19,7 @@ def feature_extract(data):
         phase_data = data[PHASES[i]:PHASES[i+1]]
         l_q = np.quantile(phase_data, 0.25)
         h_q = np.quantile(phase_data, 0.75)
+        #median_v = np.median(phase_data)
         features.append(l_q)
         features.append(h_q)
 

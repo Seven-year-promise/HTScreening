@@ -145,3 +145,21 @@ def load_cleaned_train_test_data(data_path):
 
     x = np.array(data_list)
     return x
+
+def load_feature_data_together(path):
+    """
+    :param path: the path of data
+    :return: the compound names, data, action infos (name and index) in three lists
+    """
+    comp_names = []
+    all_data = []
+    action_infos = []
+    with open(path, newline='') as csv_f:
+        read_lines = csv.reader(csv_f, delimiter=",")
+        for j, l in enumerate(read_lines):
+            data_line = [float(i) for i in l[1:-2]]
+            comp_names.append(l[0])
+            all_data.append(data_line)
+            action_infos.append(l[-2:])
+
+    return comp_names, all_data, action_infos

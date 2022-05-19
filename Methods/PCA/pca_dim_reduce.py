@@ -9,8 +9,8 @@ from utils import plot_dist_no_label, plot_dist_with_label, plot_dist_name, plot
 from sklearn.cluster import MeanShift, KMeans
 #from data_loader import load_train_test_data, load_cleaned_train_test_data
 
-def try_PCA_with_torch(data):
-    pca = PCA_torch(center=False, n_components=2)
+def try_PCA_with_torch(data, n_components=2):
+    pca = PCA_torch(center=False, n_components=n_components)
     new_feature = pca.fit_PCA(data)
 
     return data, new_feature

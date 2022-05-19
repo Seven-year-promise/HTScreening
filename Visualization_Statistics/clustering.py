@@ -48,5 +48,5 @@ def clustering(c_names=[], data=[], a_infos=[], save_path=""):
 
 if __name__ == "__main__":
     compound_names, all_median_data, action_information = \
-        load_feature_data_together(path="/srv/yanke/PycharmProjects/HTScreening/data/median/median_compounds_feature_max_fish_with_action.csv")
+        load_feature_data_together(path="/srv/yanke/PycharmProjects/HTScreening/data/median/median_compounds_feature_fish_with_action.csv")
     clustering(compound_names, all_median_data, action_information, save_path="/srv/yanke/PycharmProjects/HTScreening/data/median/")
