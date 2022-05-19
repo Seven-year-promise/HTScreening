@@ -4,12 +4,6 @@ import numpy as np
 import tensorflow as tf
 from sklearn.preprocessing import Normalizer
 
-LATENT_DIMENSION = 2
-
-CLASSES = {"WT_control": 0,
-           "TRPV agonist": 1,
-           "GABAA allosteric antagonist": 2,
-           "GABAA pore blocker": 3}
 
 RAW_CLASSES = {"Wild type": 0,
                "GABAA pore blocker": 1,
@@ -25,6 +19,39 @@ RAW_CLASSES = {"Wild type": 0,
                "unknown-likely neurotoxin": 11
                }
 
+
+def get_key(dict, value):
+    for k, v in dict.items():
+        if v == value:
+            return k
+    return "None"
+
+def load_cleaned_data(path):
+    all_data = []
+    all_comps = []
+    all_labels = []
+    with open(path, newline='') as csv_f:
+        read_lines = csv.reader(csv_f, delimiter=",")
+        for j, l in enumerate(read_lines):
+
+            all_comps.append(l[0])
+            one_data = [float(i) for i in l[1:-2]]
+            if len(one_data) != 539:
+                print("oops!")
+                continue
+
+            #print(len(one_data))
+            all_data.append(one_data)
+            all_labels.append(int(l[-1]))
+    #print(all_data)
+    all_data = np.array(all_data)
+    all_comps = np.array(all_comps)
+    all_labels = np.array(all_labels)
+    print(all_data.shape)
+    return all_data, all_comps, all_labels
+
+
+# ---------------before---------------------------------
 def combine_data(data1, data2, label1, label2):
     num1 = data1.shape[0]
     num2 = data2.shape[0]
@@ -70,6 +97,7 @@ def load_data():
     y_eval = y_eval.reshape(-1, 1)
     return x_train, y_train, x_eval, y_eval
 
+"""
 def load_cleaned_data(path, label_path, normalize):
     data_list = []
     data_labels = []
@@ -90,6 +118,7 @@ def load_cleaned_data(path, label_path, normalize):
         data_list = transformer.transform(data_list)
 
     return data_list, np.array(data_labels)
+"""
 
 def load_effected_data_comp_action(path, normalize):
     data_list = []

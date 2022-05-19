@@ -14,17 +14,17 @@ from scipy.stats import mode
 from deep_gp import DeepGP
 from utils import plot_tsne, plot_tsne_no_class
 
-LATENT_DIMENSION = 2
-MATH_PATH = "./results/dgp_vae/effected/ae/2-dimension/"
+LATENT_DIMENSION = 22
+MATH_PATH = "./results/dgp_vae/22-dimension/"
 NUMBER_LAYERS = 4
 
 def make_dgp(num_layers, X, Y, Z):
     kernels = [RBF(variance=2.0, lengthscales=2.0)]
-    layer_sizes = [541, 256, LATENT_DIMENSION, 256]
+    layer_sizes = [539, 256, LATENT_DIMENSION, 256]
     for l in range(num_layers-1):
         kernels.append(RBF(variance=2.0, lengthscales=2.0))
     model = DeepGP(X, Y, Z, kernels, layer_sizes, Bernoulli(),
-                   num_outputs=541)
+                   num_outputs=539)
 
     # init hidden layers to be near deterministic
     for layer in model.layers[:-1]:
@@ -86,11 +86,8 @@ def draw_tsne(model, X, labels, batch_size=1000, num_samples=100):
 
 
 if __name__ == '__main__':
-    x_train, _ = load_effected_data(path="/srv/yanke/PycharmProjects/HTScreening/data/raw_data/effected_compounds_pvalue_frames_labeled.csv",
-                          normalize=False)
-
-    x_test, _ = load_effected_data(path="/srv/yanke/PycharmProjects/HTScreening/data/raw_data/effected_compounds_pvalue_frames_labeled.csv",
-                          normalize=False)
+    x_train, _, _ = load_cleaned_data(
+        path="/srv/yanke/PycharmProjects/HTScreening/data/raw_data/effected_compounds_pvalue_frames_labeled.csv")
     #y_train = x_train
     #y_test = x_test
     #y_train, x_train, y_test, x_test, test_label = y_train[:1000, :], x_train[:1000, :], y_test[:1000, :], x_test[:1000, :], test_label[:1000, :]

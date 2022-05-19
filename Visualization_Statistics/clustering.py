@@ -8,7 +8,7 @@ def clustering(c_names=[], data=[], a_infos=[], save_path=""):
     c_names = np.array(c_names)
     data = np.array(data)
     a_infos = np.array(a_infos)
-    kmeans = KMeans(n_clusters=12, random_state=0).fit(data)
+    kmeans = KMeans(n_clusters=2, random_state=0).fit(data)
     labels = kmeans.labels_
     print(labels)
 
@@ -49,4 +49,4 @@ def clustering(c_names=[], data=[], a_infos=[], save_path=""):
 if __name__ == "__main__":
     compound_names, all_median_data, action_information = \
         load_feature_data_together(path="/srv/yanke/PycharmProjects/HTScreening/data/median/median_compounds_feature_fish_with_action.csv")
-    clustering(compound_names, all_median_data, action_information, save_path="/srv/yanke/PycharmProjects/HTScreening/data/median/")
+    clustering(compound_names, all_median_data, action_information, save_path="/srv/yanke/PycharmProjects/HTScreening/data/median_clustering/")
