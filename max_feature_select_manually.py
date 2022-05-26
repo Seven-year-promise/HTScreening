@@ -31,7 +31,7 @@ def extract_feature_to(data_path, save_path):
             feature = feature_extract(one_data)
             feature_data = [l[0]] + feature + l[-2:]
             all_data_feature.append(feature_data)
-    with open(save_path + "all_compounds_feature_max_fish_with_action.csv", "w") as save_csv:
+    with open(save_path + "all_compounds_feature_max_median_fish_with_action.csv", "w") as save_csv:
         csv_writer = csv.writer(save_csv)
         csv_writer.writerows(all_data_feature)
 

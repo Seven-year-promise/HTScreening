@@ -10,12 +10,12 @@ def load_cleaned_data(path):
         read_lines = csv.reader(csv_f, delimiter=",")
         for j, l in enumerate(read_lines):
 
-            all_comps.append(l[0])
+
             one_data = [float(i) for i in l[1:-2]]
             if len(one_data) != 539:
                 print("oops!")
                 continue
-
+            all_comps.append(l[0])
             #print(len(one_data))
             all_data.append(one_data)
             all_labels.append(int(l[-1]))

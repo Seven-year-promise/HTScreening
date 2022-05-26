@@ -27,6 +27,6 @@ def clean_file_to(ori_path, save_path):
 
 
 if __name__ == "__main__":
-    file_path = "./data/ori/all_data/Controls/Control 12/"
-    save_path = "./data/cleaned/all_data/Controls/Control_12/"
+    file_path = "./data/ori/all_data/Compounds_renamed/"# /Controls/Control_1, 2, 3, 4_candidates....
+    save_path = "./data/cleaned/all_data/Compounds/" # /Controls/Control_1, 2, 3, ....
     clean_file_to(file_path, save_path)

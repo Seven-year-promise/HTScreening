@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 import csv
 import numpy as np
-from utils import RAW_CLASSES, load_feature_data_all_by_compound
-from scipy.stats import ttest_ind
+from utils import RAW_CLASSES, load_feature_data_all_by_compound, load_ori_data_all_by_compound
 
 def t_test_visualize_save(data={}, action={}, save_path=""):
     compound_names = data.keys()
@@ -16,12 +15,16 @@ def t_test_visualize_save(data={}, action={}, save_path=""):
             median_data.append([comp_name] + np.median(comp_data, axis=0).tolist() + action[comp_name])
 
 
-    with open(save_path + "median_compounds_feature_fish_with_action.csv", "w") as save_csv:
+    with open(save_path + "median_compounds_ori_fish_with_action.csv", "w") as save_csv:
         csv_writer = csv.writer(save_csv)
         csv_writer.writerows(median_data)
 
 
 
 if __name__ == "__main__":
-    feature_data_by_compound, action_dict_by_compound = load_feature_data_all_by_compound(path="/srv/yanke/PycharmProjects/HTScreening/data/featured/all_compounds_feature_fish_with_action.csv")
-    t_test_visualize_save(feature_data_by_compound, action_dict_by_compound, save_path="/srv/yanke/PycharmProjects/HTScreening/data/median/")
+    #feature_data_by_compound, action_dict_by_compound = load_feature_data_all_by_compound(
+    # path="/Users/yankeewann/Desktop/HTScreening/data/featured/all_compounds_feature_max_median_fish_with_action.csv")
+    feature_data_by_compound, action_dict_by_compound = load_ori_data_all_by_compound(
+        path="/Users/yankeewann/Desktop/HTScreening/data/cleaned/all_compounds_ori_fish_with_action.csv")
+
+    t_test_visualize_save(feature_data_by_compound, action_dict_by_compound, save_path="/Users/yankeewann/Desktop/HTScreening/data/median/")

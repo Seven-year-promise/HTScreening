@@ -31,13 +31,38 @@ def load_cleaned_data(path):
     with open(path, newline='') as csv_f:
         read_lines = csv.reader(csv_f, delimiter=",")
         for j, l in enumerate(read_lines):
+
+            one_data = [float(i) for i in l[1:-2]]
+            if len(one_data) != 539:
+                print("oops!")
+                continue
             all_comp_nums.append(int(l[0][1:]))
             all_comps.append(l[0])
-            one_data = [float(i) for i in l[1:-2]]
-            #if len(one_data) != 539:
-            #    print("oops!")
-            #    continue
+            #print(len(one_data))
+            all_data.append(one_data)
+            all_labels.append(int(l[-1]))
+    #print(all_data)
+    all_data = np.array(all_data)
+    all_comps = np.array(all_comps)
+    all_labels = np.array(all_labels)
+    print(all_data.shape)
+    return all_data, all_comps, np.array(all_comp_nums), all_labels
 
+def load_featured_data(path):
+    all_data = []
+    all_comps = []
+    all_comp_nums = []
+    all_labels = []
+    with open(path, newline='') as csv_f:
+        read_lines = csv.reader(csv_f, delimiter=",")
+        for j, l in enumerate(read_lines):
+
+            one_data = [float(i) for i in l[1:-2]]
+            if len(one_data) != 22:
+                print("oops!")
+                continue
+            all_comp_nums.append(int(l[0][1:]))
+            all_comps.append(l[0])
             #print(len(one_data))
             all_data.append(one_data)
             all_labels.append(int(l[-1]))
