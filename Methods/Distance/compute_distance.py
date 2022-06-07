@@ -1,4 +1,5 @@
 import numpy as np
+import nthresh
 import csv
 import sys
 sys.path.append("../../")
@@ -20,28 +21,39 @@ def compute_mean_distance(mu1, mu2, sigma1, sigma2):
     sigma_inv = np.linalg.inv(sigma)
     return np.matmul(np.matmul(np.transpose(mu1 - mu2), sigma_inv), (mu1 - mu2))
 
-def draw_distance_figure(dis_data, max_v):
+def draw_distance_figure(dis_data, max_v, thresholds):
     num = len(dis_data)
     #max_v = np.max(np.array(dis_data)[:, -1])
+
+
     fig, ax = plt.subplots()
-    ax.set_xlim(-1, num+1)
-    ax.set_ylim(-1, max_v+1)
+    ax.set_xlim(-1, num+2)
+    ax.set_ylim(-10, max_v+50)
 
     x_labels = []
     ax.axhline(y=0, color="pink")
+
     for n, d in enumerate(dis_data):
         ax.axvline(x=n, ymin=0, ymax=max_v, color="grey")
-        ax.add_patch(Rectangle((n-0.25, d[2]), 0.5, d[3]-d[2]))
-        ax.add_patch(Rectangle((n-0.25, d[1]), 0.5, 0.1,
-                               facecolor='pink',
+        #ax.add_patch(Rectangle((n-0.25, d[2]), 0.5, d[3]-d[2]))
+        ax.scatter(num, d[1], s=0.2, c='blue')
+        ax.add_patch(Rectangle((n-0.25, d[1]-1), 0.5, 2,
+                               facecolor='black',
                                fill=True))
         x_labels.append(d[0])
+    x_labels.append("All")
+
+    # drwa the threshold
+    for t in thresholds:
+        ax.axhline(y=t, color="red")
+        ax.text(num-0.5, t, "Thre:" + str(round(t, 2)), fontsize=5)
+
     ax.set_xticks(np.arange(len(x_labels)), labels=x_labels)
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
              rotation_mode="anchor")
     # Rotate the tick labels and set their alignment.
     ax.set_ylabel("Distance")
-    ax.text(4, 10, "Distance = $\sqrt[2]{(x-\mu_w)^T * \Sigma^{-1}_w * (x-\mu_w)}$", bbox=dict(facecolor='red', alpha=0.5))
+    ax.text(4, 800, "Distance = $\sqrt[2]{(x-\mu_w)^T * \Sigma^{-1}_w * (x-\mu_w)}$", bbox=dict(facecolor='red', alpha=0.5))
     plt.tight_layout()
     plt.show()
 
@@ -74,9 +86,13 @@ def distance_to(data, labels, save_path):
         feature_data.append(l_q)
         feature_data.append(h_q)
         all_distance_save.append(feature_data)
-        all_dis.append(h_q)
+        all_dis.append(median_v)
     max_v = np.max(all_dis)
-    draw_distance_figure(all_distance_save, max_v)
+    print("max is ", np.argmax(all_dis), max_v)
+    thre = nthresh.nthresh(np.array(all_dis), n_classes=4, bins=10, n_jobs=1)
+    #thre = [all_dis[0]*2]
+    print("the threshold is ", thre)
+    draw_distance_figure(all_distance_save, max_v, thre)
     with open(save_path + "all_compounds_distance_to_wild_featured.csv", "w") as save_csv:
         csv_writer = csv.writer(save_csv)
         csv_writer.writerows(all_distance_save)
@@ -140,5 +156,5 @@ if __name__ == "__main__":
     #data, _, labels, actions = load_featured_data(
     #    path="/Users/yankeewann/Desktop/HTScreening/data/featured/all.....csv")
     save_path = "/Users/yankeewann/Desktop/HTScreening/data/distance/"
-    #distance_to(data, labels, save_path)
-    mean_distance_with_PCA_visualize(data, labels)
+    distance_to(data, labels, save_path)
+    #mean_distance_with_PCA_visualize(data, labels)
