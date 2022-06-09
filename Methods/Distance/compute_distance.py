@@ -28,32 +28,38 @@ def draw_distance_figure(dis_data, max_v, thresholds):
 
     fig, ax = plt.subplots()
     ax.set_xlim(-1, num+2)
-    ax.set_ylim(-10, max_v+50)
+    ax.set_ylim(-10, max_v+200)
 
     x_labels = []
     ax.axhline(y=0, color="pink")
 
     for n, d in enumerate(dis_data):
         ax.axvline(x=n, ymin=0, ymax=max_v, color="grey")
-        #ax.add_patch(Rectangle((n-0.25, d[2]), 0.5, d[3]-d[2]))
-        ax.scatter(num, d[1], s=0.2, c='blue')
+        ax.add_patch(Rectangle((n-0.25, d[2]), 0.5, d[3]-d[2]))
+        ax.scatter(num, d[1], s=2.5, c='blue')
         ax.add_patch(Rectangle((n-0.25, d[1]-1), 0.5, 2,
                                facecolor='black',
                                fill=True))
+
+        ax.text(n - 0.2, d[3] + 80, "3rd:" + str(round(d[3], 2)), fontsize=8)
+        ax.text(n - 0.2, d[3] + 50, "mu:" + str(round(d[1], 2)), fontsize=8)
+        ax.text(n - 0.2, d[3] + 20, "1st:" + str(round(d[2], 2)), fontsize=8)
         x_labels.append(d[0])
     x_labels.append("All")
 
+    """
     # drwa the threshold
     for t in thresholds:
         ax.axhline(y=t, color="red")
         ax.text(num-0.5, t, "Thre:" + str(round(t, 2)), fontsize=5)
+    """
 
     ax.set_xticks(np.arange(len(x_labels)), labels=x_labels)
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
              rotation_mode="anchor")
     # Rotate the tick labels and set their alignment.
     ax.set_ylabel("Distance")
-    ax.text(4, 800, "Distance = $\sqrt[2]{(x-\mu_w)^T * \Sigma^{-1}_w * (x-\mu_w)}$", bbox=dict(facecolor='red', alpha=0.5))
+    ax.text(0, 800, "Distance = $\sqrt[2]{(x-\mu_w)^T * \Sigma^{-1}_w * (x-\mu_w)}$", bbox=dict(facecolor='red', alpha=0.5))
     plt.tight_layout()
     plt.show()
 
@@ -64,7 +70,7 @@ def distance_to(data, labels, save_path):
     WILD_COV_INV = np.linalg.inv(np.cov(wild_data, rowvar=False))
     all_distance_save = []
     all_dis = []
-    for l in range(label_num+1):
+    for l in range(2): #label_num+1):
         inds = labels==l
         comp_data = data[inds]
         if comp_data.shape[0] < 1:
@@ -72,28 +78,31 @@ def distance_to(data, labels, save_path):
         comp_dis = []
         for c_d_i in range(comp_data.shape[0]):
             dis = compute_distance(WILD_MEAN, WILD_COV_INV, comp_data[c_d_i, :])
+            #print(WILD_MEAN.shape, comp_data[c_d_i, :].shape)
             #print(dis)
             dis = np.sqrt(dis)
             #print(dis)
             comp_dis.append(dis)
+        if l==0:
+            print(comp_dis)
         comp_dis = np.array(comp_dis)
         #print(comp_dis)
-        l_q = np.quantile(comp_dis, 0.25)
-        h_q = np.quantile(comp_dis, 0.75)
-        median_v = np.median(comp_dis)
+        l_q = np.quantile(comp_dis, 0.25) #np.min(comp_dis)
+        h_q = np.quantile(comp_dis, 0.75)  #np.max(comp_dis)
+        median_v = np.mean(comp_dis)
         feature_data = ["C"+str(l)]
         feature_data.append(median_v)
         feature_data.append(l_q)
         feature_data.append(h_q)
         all_distance_save.append(feature_data)
-        all_dis.append(median_v)
+        all_dis.append(h_q)
     max_v = np.max(all_dis)
     print("max is ", np.argmax(all_dis), max_v)
     thre = nthresh.nthresh(np.array(all_dis), n_classes=4, bins=10, n_jobs=1)
     #thre = [all_dis[0]*2]
     print("the threshold is ", thre)
     draw_distance_figure(all_distance_save, max_v, thre)
-    with open(save_path + "all_compounds_distance_to_wild_featured.csv", "w") as save_csv:
+    with open(save_path + "all_compounds_distance_to_wild_ori.csv", "w") as save_csv:
         csv_writer = csv.writer(save_csv)
         csv_writer.writerows(all_distance_save)
 
@@ -154,7 +163,7 @@ if __name__ == "__main__":
     data, _, labels, actions = load_cleaned_data(
         path="/Users/yankeewann/Desktop/HTScreening/data/cleaned/all_compounds_ori_fish_with_action.csv")
     #data, _, labels, actions = load_featured_data(
-    #    path="/Users/yankeewann/Desktop/HTScreening/data/featured/all.....csv")
+    #    path="/Users/yankeewann/Desktop/HTScreening/data/featured/all_compounds_feature_max_median_fish_with_action.csv")
     save_path = "/Users/yankeewann/Desktop/HTScreening/data/distance/"
     distance_to(data, labels, save_path)
     #mean_distance_with_PCA_visualize(data, labels)
