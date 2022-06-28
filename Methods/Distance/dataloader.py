@@ -58,7 +58,7 @@ def load_featured_data(path):
         for j, l in enumerate(read_lines):
 
             one_data = [float(i) for i in l[1:-2]]
-            if len(one_data) != 22:
+            if len(one_data) != 10:
                 print("oops!")
                 continue
             all_comp_nums.append(int(l[0][1:]))

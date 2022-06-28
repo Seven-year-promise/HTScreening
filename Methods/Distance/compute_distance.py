@@ -52,7 +52,7 @@ def draw_distance_figure(all_dis, dis_save, max_v, min_v, thresholds):
 
     fig, ax = plt.subplots()
     ax.set_xlim(-1, num+2)
-    ax.set_ylim(min_v-200, max_v+200)
+    ax.set_ylim(min_v-2, max_v+2)
 
     x_labels = []
     ax.axhline(y=0, color="pink")
@@ -73,6 +73,7 @@ def draw_distance_figure(all_dis, dis_save, max_v, min_v, thresholds):
         ax.text(n - 0.5, d[1] + d[4] + 80, str(round(p, 3)), fontsize=8)
         x_labels.append(d[0])
     x_labels.append("All")
+
 
     """
     # draw the threshold
@@ -153,6 +154,22 @@ def fit_skew_dist(data):
 
     plt.show()
 
+def draw_box_plot_ttest(all_dis, dis_save):
+    WILD_dis = all_dis[0]
+
+    x_labels = []
+    fig, ax = plt.subplots()
+    for n, (a_d, d) in enumerate(zip(all_dis, dis_save)):
+        if n == 0:
+            print(WILD_dis, a_d)
+        F, p = ttest_ind(WILD_dis, a_d, equal_var=False)
+        plt.text(n, d[1] + d[4] + 0.5, str(round(p, 3)), fontsize=8)
+        x_labels.append(d[0])
+    ax.boxplot(all_dis, labels=x_labels)
+    plt.setp(ax.get_xticklabels(), rotation=85, ha="right",
+             rotation_mode="anchor")
+    plt.tight_layout()
+    plt.show()
 
 def distance_to(data, labels, save_path):
     label_num = np.max(labels)
@@ -207,9 +224,9 @@ def distance_to(data, labels, save_path):
     #thre = nthresh.nthresh(np.array(all_dis), n_classes=4, bins=10, n_jobs=1)
     thre = [all_distance_save[0][1] + 3*all_distance_save[0][4]]#[24.81]
     print("the threshold is ", thre)
-
-    draw_distance_figure(all_dis, all_distance_save, max_v, min_v, thre)
-    with open(save_path + "all_compounds_distance_to_wild_ori.csv", "w") as save_csv:
+    draw_box_plot_ttest(all_dis, all_distance_save)
+    #draw_distance_figure(all_dis, all_distance_save, max_v, min_v, thre)
+    with open(save_path + "all_compounds_distance_to_wild_pca_feature.csv", "w") as save_csv:
         csv_writer = csv.writer(save_csv)
         csv_writer.writerows(all_distance_save)
 
@@ -267,10 +284,10 @@ def mean_distance_with_PCA_visualize(data, labels):
     plt.show()
 
 if __name__ == "__main__":
-    data, _, labels, actions = load_cleaned_data(
-        path="/Users/yankeewann/Desktop/HTScreening/data/cleaned/all_compounds_ori_fish_with_action.csv")
-    #data, _, labels, actions = load_featured_data(
-    #    path="/Users/yankeewann/Desktop/HTScreening/data/featured/all_compounds_feature_max_median_fish_with_action.csv")
+    #data, _, labels, actions = load_cleaned_data(
+    #    path="/Users/yankeewann/Desktop/HTScreening/data/cleaned/all_compounds_ori_fish_with_action.csv")
+    data, _, labels, actions = load_featured_data(
+        path="/Users/yankeewann/Desktop/HTScreening/data/featured/all_compounds_pca_feature_fish_with_action.csv")
     save_path = "/Users/yankeewann/Desktop/HTScreening/data/distance/"
     distance_to(data, labels, save_path)
     #mean_distance_with_PCA_visualize(data, labels)
