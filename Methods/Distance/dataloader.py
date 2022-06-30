@@ -48,7 +48,7 @@ def load_cleaned_data(path):
     print(all_data.shape)
     return all_data, all_comps, np.array(all_comp_nums), all_labels
 
-def load_featured_data(path):
+def load_featured_data(path, d=2):
     all_data = []
     all_comps = []
     all_comp_nums = []
@@ -58,7 +58,7 @@ def load_featured_data(path):
         for j, l in enumerate(read_lines):
 
             one_data = [float(i) for i in l[1:-2]]
-            if len(one_data) != 10:
+            if len(one_data) != d:
                 print("oops!")
                 continue
             all_comp_nums.append(int(l[0][1:]))

@@ -70,7 +70,7 @@ def draw_distance_figure(all_dis, dis_save, max_v, min_v, thresholds):
         #ax.text(n - 0.2, d[3] + 80, "3rd:" + str(round(d[3], 2)), fontsize=8)
         #ax.text(n - 0.2, d[3] + 40, "$\mu$:" + str(round(d[1], 2)), fontsize=8)
         #ax.text(n - 0.2, d[3] + 20, "$\sigma$:" + str(round(d[4], 2)), fontsize=8)
-        ax.text(n - 0.5, d[1] + d[4] + 80, str(round(p, 3)), fontsize=8)
+        ax.text(n+1, d[1] + d[4] + 80, str(round(p, 3)), fontsize=8)
         x_labels.append(d[0])
     x_labels.append("All")
 
@@ -163,7 +163,7 @@ def draw_box_plot_ttest(all_dis, dis_save):
         if n == 0:
             print(WILD_dis, a_d)
         F, p = ttest_ind(WILD_dis, a_d, equal_var=False)
-        plt.text(n, d[1] + d[4] + 0.5, str(round(p, 3)), fontsize=8)
+        plt.text(n+1, d[1] + d[4] + 0.5, str(round(p, 3)), fontsize=8)
         x_labels.append(d[0])
     ax.boxplot(all_dis, labels=x_labels)
     plt.setp(ax.get_xticklabels(), rotation=85, ha="right",
@@ -181,11 +181,18 @@ def distance_to(data, labels, save_path):
     all_dis = []
     max_dis = []
     min_dis = []
-    for l in range(label_num+1):
+    fig, ax = plt.subplots()
+    colors = ['tab:gray', 'tab:green', 'tab:red']
+    markers = ['x', '<', 'p']
+    for l, c, m in zip([0, 20, 33], colors, markers): #range(label_num+1):
         inds = labels==l
         comp_data = data[inds]
         if comp_data.shape[0] < 1:
             continue
+        ax.scatter(comp_data[:, 0], comp_data[:, 1], s=35, color=c, label="C_"+str(l), marker=m)
+        comp_mean = np.mean(comp_data, axis=0)
+        print(comp_mean)
+        ax.scatter(comp_mean[0], comp_mean[1], s=55, color=c)
         comp_dis = []
         for c_d_i in range(comp_data.shape[0]):
             dis = compute_distance(WILD_MEAN, WILD_COV_INV, comp_data[c_d_i, :])
@@ -217,6 +224,9 @@ def distance_to(data, labels, save_path):
         all_distance_save.append(feature_data)
         max_dis.append(mean_v+std_v)
         min_dis.append(mean_v-std_v)
+    plt.legend(loc="best")
+    plt.show()
+    plt.clf()
     max_v = np.max(max_dis)
     min_v = np.min(min_dis)
     print("max is ", np.argmax(max_dis), max_v)
@@ -287,7 +297,7 @@ if __name__ == "__main__":
     #data, _, labels, actions = load_cleaned_data(
     #    path="/Users/yankeewann/Desktop/HTScreening/data/cleaned/all_compounds_ori_fish_with_action.csv")
     data, _, labels, actions = load_featured_data(
-        path="/Users/yankeewann/Desktop/HTScreening/data/featured/all_compounds_pca_feature_fish_with_action.csv")
+        path="/Users/yankeewann/Desktop/HTScreening/data/featured/all_compounds_pca10_feature_fish_with_action.csv", d=10)
     save_path = "/Users/yankeewann/Desktop/HTScreening/data/distance/"
     distance_to(data, labels, save_path)
     #mean_distance_with_PCA_visualize(data, labels)

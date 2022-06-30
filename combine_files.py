@@ -71,6 +71,8 @@ def combine_file_to(action_path, data_path, save_path):
     control_path = data_path + "Controls/"
     control_folders = os.listdir(control_path)
     for c_folder in control_folders:
+        if c_folder[0] == ".":
+            continue
         c_folder_path = control_path + c_folder + "/"
         control_files = os.listdir(c_folder_path)
         for c_f in control_files:

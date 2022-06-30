@@ -27,7 +27,7 @@ def extract_feature_to(data_path, save_path):
             cleaned_action_infos.append(l[-2:])
 
     cleaned_data = np.array(cleaned_data)
-    pca = PCA_torch(center=False, n_components=10)
+    pca = PCA_torch(center=False, n_components=5)
     new_cleaned_data = pca.fit_PCA(cleaned_data)
 
     for i in range(new_cleaned_data.shape[0]):
@@ -35,7 +35,7 @@ def extract_feature_to(data_path, save_path):
         feature_data = [cleaned_comp_names[i]] + feature.tolist() + cleaned_action_infos[i]
         all_data_feature.append(feature_data)
 
-    with open(save_path + "all_compounds_pca_feature_fish_with_action.csv", "w") as save_csv:
+    with open(save_path + "all_compounds_pca5_feature_fish_with_action.csv", "w") as save_csv:
         csv_writer = csv.writer(save_csv)
         csv_writer.writerows(all_data_feature)
 
