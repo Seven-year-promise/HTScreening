@@ -173,26 +173,49 @@ def draw_box_plot_ttest(all_dis, dis_save):
 
 def distance_to(data, labels, save_path):
     label_num = np.max(labels)
-    wild_data = data[labels==0]
-    WILD_MEAN = np.mean(wild_data, axis=0)
-    WILD_COV_INV = np.linalg.inv(np.cov(wild_data, rowvar=False))
+    #wild_data = data[labels==0]
+    #WILD_MEAN = np.mean(wild_data, axis=0)
+    #WILD_COV_INV = np.linalg.inv(np.cov(wild_data, rowvar=False))
     all_distance_save = []
 
     all_dis = []
     max_dis = []
     min_dis = []
     fig, ax = plt.subplots()
+    #ax.set_ylim(-0.75, 1.25)
+    #ax.set_xlim(0.25, 2.75)
     colors = ['tab:gray', 'tab:green', 'tab:red']
     markers = ['x', '<', 'p']
-    for l, c, m in zip([0, 20, 33], colors, markers): #range(label_num+1):
-        inds = labels==l
-        comp_data = data[inds]
-        if comp_data.shape[0] < 1:
-            continue
-        ax.scatter(comp_data[:, 0], comp_data[:, 1], s=35, color=c, label="C_"+str(l), marker=m)
-        comp_mean = np.mean(comp_data, axis=0)
-        print(comp_mean)
-        ax.scatter(comp_mean[0], comp_mean[1], s=55, color=c)
+    wild_data = []
+    for l, c, m in zip([-1,20+11,33+11], colors, markers): #range(label_num+1):
+        # display PCA
+        if l < 0:
+            wild_means = []
+            for w_i in range(12):
+                inds = labels==w_i
+                comp_data = data[inds]
+                if comp_data.shape[0] < 1:
+                    continue
+                comp_mean = np.mean(comp_data, axis=0)
+                wild_data += comp_data.tolist()
+                wild_means.append(comp_mean)
+            wild_means = np.array(wild_means)
+            print(wild_means)
+            #ax.scatter(wild_means[:, 0], wild_means[:, 1], s=55, color=c, label="means of 12 wild type experiments (each around 50 fish)", marker=m)
+
+            wild_data = np.array(wild_data)
+            ax.scatter(wild_data[:, 0], wild_data[:, 1], s=55, color=c, label="C0 (all controls)", marker=m)
+            WILD_MEAN = np.mean(wild_data, axis=0)
+            WILD_COV_INV = np.linalg.inv(np.cov(wild_data, rowvar=False))
+        else:
+            inds = labels == l
+            comp_data = data[inds]
+            ax.scatter(comp_data[:, 0], comp_data[:, 1], s=35, color=c, label="C"+str(l-11), marker=m)
+            comp_mean = np.mean(comp_data, axis=0)
+            print(comp_mean)
+            ax.scatter(comp_mean[0], comp_mean[1], s=55, color=c)
+
+        #compute distance
         comp_dis = []
         for c_d_i in range(comp_data.shape[0]):
             dis = compute_distance(WILD_MEAN, WILD_COV_INV, comp_data[c_d_i, :])
@@ -297,7 +320,7 @@ if __name__ == "__main__":
     #data, _, labels, actions = load_cleaned_data(
     #    path="/Users/yankeewann/Desktop/HTScreening/data/cleaned/all_compounds_ori_fish_with_action.csv")
     data, _, labels, actions = load_featured_data(
-        path="/Users/yankeewann/Desktop/HTScreening/data/featured/all_compounds_pca10_feature_fish_with_action.csv", d=10)
+        path="/Users/yankeewann/Desktop/HTScreening/data/featured/all_compounds_pca2_feature_fish_with_action_wt_separate.csv", d=2)
     save_path = "/Users/yankeewann/Desktop/HTScreening/data/distance/"
     distance_to(data, labels, save_path)
     #mean_distance_with_PCA_visualize(data, labels)

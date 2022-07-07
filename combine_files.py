@@ -70,9 +70,15 @@ def combine_file_to(action_path, data_path, save_path):
     # read controls
     control_path = data_path + "Controls/"
     control_folders = os.listdir(control_path)
-    for c_folder in control_folders:
+    num_controls = len(control_folders)
+    print("number of controls", num_controls)
+    invalid = 0
+    for c_i, c_folder in enumerate(control_folders):
         if c_folder[0] == ".":
+            num_controls = num_controls-1
+            invalid+=1
             continue
+        print(c_i)
         c_folder_path = control_path + c_folder + "/"
         control_files = os.listdir(c_folder_path)
         for c_f in control_files:
@@ -84,7 +90,7 @@ def combine_file_to(action_path, data_path, save_path):
                     reader_to_lines.append([float(i) for i in l])
                 reader_to_lines = np.array(reader_to_lines)
                 for i in range(reader_to_lines.shape[1]):
-                    one_control_data = ["C0"] + reader_to_lines[:, i].tolist() + ["Wild type"] + [0]
+                    one_control_data = ["C"+str(c_i-invalid)] + reader_to_lines[:, i].tolist() + ["Wild type"] + [0]
                     all_control_comp_data.append(one_control_data)
 
     # read compounds
@@ -95,6 +101,7 @@ def combine_file_to(action_path, data_path, save_path):
         with open(comp_path + comp_f, "r") as comp_d_f:
             comp_name = comp_f[:-4].split("_")[0]
             comp_id = int(comp_name[1:])
+            comp_name = "C"+str(num_controls-1+comp_id)
             reader_to_lines = []
             reader = csv.reader(comp_d_f, delimiter=",")
             for j, l in enumerate(reader):
@@ -106,7 +113,7 @@ def combine_file_to(action_path, data_path, save_path):
                 one_comp_data = [comp_name] + reader_to_lines[:, i].tolist() + [action_name] + [action_id]
                 all_control_comp_data.append(one_comp_data)
 
-    with open(save_path + "all_compounds_ori_fish_with_action.csv", "w") as save_csv:
+    with open(save_path + "all_compounds_ori_fish_with_action_wt_separate.csv", "w") as save_csv:
         csv_writer = csv.writer(save_csv)
         csv_writer.writerows(all_control_comp_data)
 
