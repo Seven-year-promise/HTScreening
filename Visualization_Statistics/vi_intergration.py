@@ -45,7 +45,7 @@ def visualize_separate_wt(data):
                 the_data = np.array(the_data).reshape(len(the_data),)
                 print(the_data)
                 box_data.append(the_data)
-                box_labels.append("C"+str(w_i))
+                box_labels.append("C0_"+str(w_i))
         else:
             the_data = data["C" + str(l)]
             if len(the_data) < 1:
@@ -106,6 +106,6 @@ if __name__ == "__main__":
     feature_data_by_compound, action_dict_by_compound = load_feature_data_all_by_compound(
         path="/Users/yankeewann/Desktop/HTScreening/data/featured/all_compounds_integration_feature_fish_with_action_wt_separate.csv")
 
-    #visualize_separate_wt(feature_data_by_compound)
-    visualize_together_wt(feature_data_by_compound)
+    visualize_separate_wt(feature_data_by_compound)
+    #visualize_together_wt(feature_data_by_compound)
     #mean_distance_with_PCA_visualize(data, labels)
