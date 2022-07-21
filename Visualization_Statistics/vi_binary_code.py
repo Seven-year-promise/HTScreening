@@ -122,10 +122,33 @@ def visualize_together_wt(data, save_path):
         csv_writer.writerow(higher_effected_comp)
         csv_writer.writerow(lower_effected_comp)
 
-if __name__ == "__main__":
-    feature_data_by_compound, action_dict_by_compound = load_feature_data_all_by_compound(
-        path="/Users/yankeewann/Desktop/HTScreening/data/featured/all_compounds_integration_feature_fish_with_action_wt_separate.csv")
+def save_binary_code_patterns(path, save_path):
+    comp_names = []
+    actions = []
+    with open(path, newline='') as csv_f:
+        read_lines = csv.reader(csv_f, delimiter=",")
+        for j, l in enumerate(read_lines):
+            compound_name = l[0]
+            comp_names.append(compound_name)
+            actions.append(int(l[-1]))
 
-    #visualize_separate_wt(feature_data_by_compound)
-    visualize_together_wt(feature_data_by_compound, "/Users/yankeewann/Desktop/HTScreening/data/")
-    #mean_distance_with_PCA_visualize(data, labels)
+    comp_action_data = []
+    actions = np.array(actions)
+    comp_names = np.array(comp_names)
+    print(actions)
+    for i in range(27):
+        inds = actions==i
+        print(inds)
+        action_comp_names = comp_names[inds]
+        if 0 < len(action_comp_names):
+            comp_action_data.append([str(i)]+list(action_comp_names))
+    print(comp_action_data)
+    with open(save_path + "action_pattern_with_binary_codes.csv", "w") as save_csv:
+        csv_writer = csv.writer(save_csv)
+        csv_writer.writerows(comp_action_data)
+
+if __name__ == "__main__":
+    save_binary_code_patterns(
+        path="/Users/yankeewann/Desktop/HTScreening/data/featured/effects_binary_codes_with_integration.csv",
+        save_path="/Users/yankeewann/Desktop/HTScreening/data/")
+
