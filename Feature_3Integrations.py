@@ -7,7 +7,7 @@ extract feature based on
 [363:) after the second light
 """
 """
-one feature for each pahse : 
+one feature for each phase : 
 integration
 """
 PHASES = [0, 187, 363, -1]
