@@ -90,7 +90,7 @@ def combine_file_to(action_path, data_path, save_path):
                     reader_to_lines.append([float(i) for i in l])
                 reader_to_lines = np.array(reader_to_lines)
                 for i in range(reader_to_lines.shape[1]):
-                    one_control_data = ["C"+str(c_i-invalid)] + reader_to_lines[:, i].tolist() + ["Wild type"] + [0]
+                    one_control_data = ["C0"] + reader_to_lines[:, i].tolist() + ["Wild type"] + [0]#["C"+str(c_i-invalid)] + reader_to_lines[:, i].tolist() + ["Wild type"] + [0]
                     all_control_comp_data.append(one_control_data)
 
     # read compounds
@@ -101,7 +101,7 @@ def combine_file_to(action_path, data_path, save_path):
         with open(comp_path + comp_f, "r") as comp_d_f:
             comp_name = comp_f[:-4].split("_")[0]
             comp_id = int(comp_name[1:])
-            comp_name = "C"+str(num_controls-1+comp_id)
+            comp_name = "C"+str(comp_id)#str(num_controls-1+comp_id)
             reader_to_lines = []
             reader = csv.reader(comp_d_f, delimiter=",")
             for j, l in enumerate(reader):

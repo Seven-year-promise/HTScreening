@@ -1,3 +1,5 @@
+from config import *
+import csv
 import matplotlib.pyplot as plt
 import csv
 import numpy as np
@@ -25,6 +27,33 @@ RAW_CLASSES = {"Wild type": 0,
                "nAChR allosteric agonist": 10,
                "unknown-likely neurotoxin": 11
                }
+
+
+def read_mode_action():
+    action_with_compounds = {}
+    for a in RAW_CLASSES.keys():
+        action_with_compounds[a] = []
+    with open(MODE_OF_ACTION_PATH, "r") as a_f:
+        reader_to_lines = []
+        reader = csv.reader(a_f, delimiter=",")
+        for j, l in enumerate(reader):
+            #print(l[0])
+            reader_to_lines.append(l[0])
+        action_with_compounds[reader_to_lines[1]] = [int(i) for i in reader_to_lines[2:30]]
+        action_with_compounds[reader_to_lines[30]] = [int(i) for i in reader_to_lines[31:43]]
+        action_with_compounds[reader_to_lines[43]] = [int(i) for i in reader_to_lines[44:52]]
+        action_with_compounds[reader_to_lines[52]] = [int(i) for i in reader_to_lines[53:63]]
+        action_with_compounds[reader_to_lines[63]] = [int(i) for i in reader_to_lines[64:122]]
+        action_with_compounds[reader_to_lines[122]] = [int(i) for i in reader_to_lines[123:144]]
+        action_with_compounds[reader_to_lines[144]] = [int(i) for i in reader_to_lines[145:147]]
+        action_with_compounds[reader_to_lines[147]] = [int(i) for i in reader_to_lines[148:150]]
+        action_with_compounds[reader_to_lines[150]] = [int(i) for i in reader_to_lines[151:156]]
+        action_with_compounds[reader_to_lines[156]] = [int(i) for i in reader_to_lines[157:159]]
+        action_with_compounds[reader_to_lines[159]] = [int(i) for i in reader_to_lines[160:171]]
+    print(action_with_compounds)
+    return action_with_compounds
+
+
 
 def load_feature_data_all_by_compound(path):
     """

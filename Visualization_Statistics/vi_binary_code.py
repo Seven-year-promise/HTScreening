@@ -8,9 +8,13 @@ import matplotlib.pyplot as plt
 
 from scipy.stats import ttest_ind
 
+from utils import read_mode_action
+from config import *
+
 """
 visualize the intergrated feature
 """
+p_thre=0.001
 
 
 def draw_box_plot_ttest(all_dis, dis_save):
@@ -128,6 +132,8 @@ def save_binary_code_patterns(path, save_path):
     with open(path, newline='') as csv_f:
         read_lines = csv.reader(csv_f, delimiter=",")
         for j, l in enumerate(read_lines):
+            if j > 1:
+                continue
             compound_name = l[0]
             comp_names.append(compound_name)
             actions.append(int(l[-1]))
@@ -143,12 +149,47 @@ def save_binary_code_patterns(path, save_path):
         if 0 < len(action_comp_names):
             comp_action_data.append([str(i)]+list(action_comp_names))
     print(comp_action_data)
-    with open(save_path + "action_pattern_with_binary_codes.csv", "w") as save_csv:
+    with open(save_path / ("action_pattern_with_binary_codes"+str(p_thre)+".csv"), "w") as save_csv:
         csv_writer = csv.writer(save_csv)
         csv_writer.writerows(comp_action_data)
 
+def save_binary_code_mapping_motion(binary_path, save_path):
+    mode_actions = read_mode_action()
+    comp_names = []
+    actions = []
+    with open(binary_path, newline='') as csv_f:
+        read_lines = csv.reader(csv_f, delimiter=",")
+        for j, l in enumerate(read_lines):
+            compound_name = l[0]
+            comp_names.append(compound_name)
+            actions.append(int(l[-1]))
+
+    comp_action_data = []
+    actions = np.array(actions)
+    comp_names = np.array(comp_names)
+    print(actions)
+    for i in range(27):
+        inds = actions==i
+        print(inds)
+        action_comp_names = comp_names[inds]
+        if 0 < len(action_comp_names):
+            comp_action_data.append([str(i)]+list(action_comp_names))
+    print(comp_action_data)
+
+    plt.figure(figsize=(27, 50))
+    tab = plt.table(cellText=comp_action_data,
+                    colLabels=np.range(50),
+                    rowLabels=np.range(27),
+                    loc='center',
+                    cellLoc='center',
+                    rowLoc='center')
+    tab.scale(1, 2)
+    plt.axis('off')
+
 if __name__ == "__main__":
-    save_binary_code_patterns(
-        path="/Users/yankeewann/Desktop/HTScreening/data/featured/effects_binary_codes_with_integration.csv",
-        save_path="/Users/yankeewann/Desktop/HTScreening/data/")
+    #save_binary_code_mapping_motion(
+    #    binary_path="/Users/yankeewann/Desktop/HTScreening/data/featured/effects_binary_codes_with_integration.csv",
+    #    save_path="/Users/yankeewann/Desktop/HTScreening/data/")
+
+    save_binary_code_patterns(SAVE_FEATURE_PATH / ("effects_binary_codes_with_integration" + str(p_thre)+".csv"), DATA_PATH)
 

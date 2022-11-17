@@ -37,9 +37,9 @@ def extract_feature_to(data_path, save_path):
             #print(one_data)
             one_data = [float(i) for i in l[1:-2]]
             #print(one_data)
-            if len(one_data) != 539:
-                print("oops!")
-                continue
+            #if len(one_data) != 539:
+            #    print("oops!")
+            #    continue
             cleaned_feature_data.append(feature_extract(one_data))
             cleaned_comp_names.append(l[0])
             cleaned_action_infos.append(l[-2:])
