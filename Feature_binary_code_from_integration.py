@@ -19,13 +19,17 @@ get the binary_code feature with actions
 200:201:202:210:211:212:220:221:222:
 """
 p_thre = 0.05
+feature_num = 7
 
-def get_binary_code_action(ind0, ind1, ind2):
-    return ind0*9 + ind1*3 + ind2
+def get_binary_code_action(inds):
+    code_v = 0
+    for i, x in enumerate(inds):
+        code_v += x * 3 ** (feature_num - 1 - i)
+    return code_v
 
 def visualize_together_wt(data, action_dict, save_path):
     binary_code_features = []
-    binary_code_features.append(["Compound", "Phase 1", "Phase 2", "Phase 3", "Codes", "Pattern"])
+    binary_code_features.append(["Compound"] + ["Feature " + str(x) for x in range(feature_num)] + ["Codes", "Pattern"])
     data_num = len(data.keys())
     fig, ax = plt.subplots()
     box_data = []
@@ -51,56 +55,35 @@ def visualize_together_wt(data, action_dict, save_path):
     for n, (b_d, b_l) in enumerate(zip(box_data, box_labels)):
         b_d = np.array(b_d)
         binary_code_data = [b_l]
-        # for phase 0
-        F, p = ttest_ind(WILD_inte[:, 0], b_d[:,0], equal_var=False)
-        if p < p_thre:
-            if np.mean(WILD_inte) > np.mean(b_d):
-                ind0 = 1
-                binary_code_data.append(1)
-            else:
-                ind0 = 2
-                binary_code_data.append(2)
-        else:
-            ind0 = 0
-            binary_code_data.append(0)
 
-        # for phase 1
-        F, p = ttest_ind(WILD_inte[:, 1], b_d[:, 1], equal_var=False)
-        if p < p_thre:
-            if np.mean(WILD_inte) > np.mean(b_d):
-                ind1 = 1
-                binary_code_data.append(1)
+        inds = []
+        for ph in range(feature_num):
+            F, p = ttest_ind(WILD_inte[:, ph], b_d[:,ph], equal_var=False)
+            if p < p_thre:
+                if np.mean(WILD_inte[:, ph]) > np.mean(b_d[:,ph]):
+                    inds.append(1)
+                    binary_code_data.append(1)
+                else:
+                    inds.append(2)
+                    binary_code_data.append(2)
             else:
-                ind1 = 2
-                binary_code_data.append(2)
-        else:
-            ind1 = 0
-            binary_code_data.append(0)
+                inds.append(0)
+                binary_code_data.append(0)
 
-        # for phase 2
-        F, p = ttest_ind(WILD_inte[:, 2], b_d[:, 2], equal_var=False)
-        if p < p_thre:
-            if np.mean(WILD_inte) > np.mean(b_d):
-                ind2 = 1
-                binary_code_data.append(1)
-            else:
-                ind2 = 2
-                binary_code_data.append(2)
-        else:
-            ind2 = 0
-            binary_code_data.append(0)
-
-        binary_code_data.append(str(ind0)+str(ind1)+str(ind2))
-        binary_code_data.append(get_binary_code_action(ind0, ind1, ind2))
+        code_str = ""
+        for x in inds:
+            code_str += str(x)
+        binary_code_data.append(code_str)
+        binary_code_data.append(get_binary_code_action(inds))
         binary_code_features.append(binary_code_data)
 
-    with open(save_path / ("effects_binary_codes_with_integration" + str(p_thre)+".csv"), "w") as save_csv:
+    with open(save_path / ("effects_binary_codes_with_"+str(feature_num)+"integration" + str(p_thre)+".csv"), "w") as save_csv:
         csv_writer = csv.writer(save_csv)
         csv_writer.writerows(binary_code_features)
 
 if __name__ == "__main__":
     feature_data_by_compound, action_dict_by_compound = load_feature_data_all_by_compound(
-        path=SAVE_FEATURE_PATH / "all_compounds_3integration_feature_fish_with_action_wt_separate.csv")
+        path=SAVE_FEATURE_PATH / ("all_compounds_"+str(feature_num)+"integration_feature_fish_with_action_wt_separate.csv"))
 
     #visualize_separate_wt(feature_data_by_compound)
     print(feature_data_by_compound.keys())

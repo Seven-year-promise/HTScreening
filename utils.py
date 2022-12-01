@@ -29,7 +29,7 @@ RAW_CLASSES = {"Wild type": 0,
                }
 
 
-def read_mode_action():
+def read_mode_action() -> {}:
     action_with_compounds = {}
     for a in RAW_CLASSES.keys():
         action_with_compounds[a] = []
@@ -50,7 +50,7 @@ def read_mode_action():
         action_with_compounds[reader_to_lines[150]] = [int(i) for i in reader_to_lines[151:156]]
         action_with_compounds[reader_to_lines[156]] = [int(i) for i in reader_to_lines[157:159]]
         action_with_compounds[reader_to_lines[159]] = [int(i) for i in reader_to_lines[160:171]]
-    print(action_with_compounds)
+    #print(action_with_compounds)
     return action_with_compounds
 
 
@@ -65,15 +65,16 @@ def load_feature_data_all_by_compound(path):
     with open(path, newline='') as csv_f:
         read_lines = csv.reader(csv_f, delimiter=",")
         for j, l in enumerate(read_lines):
-            compound_name = l[0]
-            if compound_name not in all_data_dict:
-                all_data_dict[compound_name] = []
-            if compound_name not in all_data_action_dict:
-                all_data_action_dict[compound_name] = []
-                all_data_action_dict[compound_name].append(l[-2])
-                all_data_action_dict[compound_name].append(l[-1])
-            data_line = [float(i) for i in l[1:-2]]
-            all_data_dict[compound_name].append(data_line)
+            if j > 0:
+                compound_name = l[0]
+                if compound_name not in all_data_dict:
+                    all_data_dict[compound_name] = []
+                if compound_name not in all_data_action_dict:
+                    all_data_action_dict[compound_name] = []
+                    all_data_action_dict[compound_name].append(l[-2])
+                    all_data_action_dict[compound_name].append(l[-1])
+                data_line = [float(i) for i in l[1:-2]]
+                all_data_dict[compound_name].append(data_line)
 
 
     return all_data_dict, all_data_action_dict

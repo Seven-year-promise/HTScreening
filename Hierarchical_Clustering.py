@@ -21,6 +21,8 @@ from config import *
 visualize the intergrated feature
 """
 p_thre=0.05
+feature_num = 14
+type = "quantile"
 
 def read_binary_code_patterns(path, save_path):
     comp_names = []
@@ -61,7 +63,7 @@ def plot_dendrogram(model, **kwargs):
     dendrogram(linkage_matrix, **kwargs)
 
 def HI_clustering(path):
-    data = pd.read_csv(path, usecols=["Compound", "Phase 1", "Phase 2", "Phase 3"])
+    data = pd.read_csv(path, usecols=["Compound"] + ["Feature " + str(x) for x in range(feature_num)])
     data.set_index(['Compound'], drop=True, inplace=True)
     data.index.name = None
 
@@ -74,7 +76,7 @@ def HI_clustering(path):
     heatmap.ax_heatmap.set_title("Hierarchical Clustering(ward)", fontsize=20)
     #plt.show()
     plt.setp(heatmap.ax_heatmap.get_yticklabels(), rotation=0)
-    plt.savefig(SAVE_FINAL_RESULT_PATH / ("hierarchical_clustering_with_binary_codes_p" + str(p_thre) + ".png"), dpi=300)
+    plt.savefig(SAVE_FINAL_RESULT_PATH / ("hierarchical_clustering_with_"+type+"_binary_codes_p" + str(p_thre) + ".png"), dpi=300)
 
     """
     # setting distance_threshold=0 ensures we compute the full tree.
@@ -94,5 +96,5 @@ if __name__ == "__main__":
     #    save_path="/Users/yankeewann/Desktop/HTScreening/data/")
 
     #comp_names, data = read_binary_code_patterns(SAVE_FEATURE_PATH / ("effects_binary_codes_with_integration" + str(p_thre)+".csv"), DATA_PATH)
-    HI_clustering(SAVE_FEATURE_PATH / ("effects_binary_codes_with_integration" + str(p_thre)+".csv"))
+    HI_clustering(SAVE_FEATURE_PATH / ("effects_binary_codes_with_"+str(feature_num)+type + str(p_thre)+".csv"))
 

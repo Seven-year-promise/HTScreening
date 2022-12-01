@@ -14,7 +14,7 @@ from config import *
 """
 visualize the intergrated feature
 """
-p_thre=0.001
+p_thre=0.05
 
 
 def draw_box_plot_ttest(all_dis, dis_save):
@@ -132,7 +132,7 @@ def save_binary_code_patterns(path, save_path):
     with open(path, newline='') as csv_f:
         read_lines = csv.reader(csv_f, delimiter=",")
         for j, l in enumerate(read_lines):
-            if j > 1:
+            if j < 1:
                 continue
             compound_name = l[0]
             comp_names.append(compound_name)
@@ -191,5 +191,5 @@ if __name__ == "__main__":
     #    binary_path="/Users/yankeewann/Desktop/HTScreening/data/featured/effects_binary_codes_with_integration.csv",
     #    save_path="/Users/yankeewann/Desktop/HTScreening/data/")
 
-    save_binary_code_patterns(SAVE_FEATURE_PATH / ("effects_binary_codes_with_integration" + str(p_thre)+".csv"), DATA_PATH)
+    save_binary_code_patterns(SAVE_FEATURE_PATH / ("effects_binary_codes_with_3integration" + str(p_thre)+".csv"), DATA_PATH)
 
