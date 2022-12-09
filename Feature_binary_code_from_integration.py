@@ -19,7 +19,7 @@ get the binary_code feature with actions
 200:201:202:210:211:212:220:221:222:
 """
 p_thre = 0.05
-feature_num = 7
+feature_num = 3
 
 def get_binary_code_action(inds):
     code_v = 0

@@ -20,7 +20,7 @@ get the binary_code feature with actions
 """
 p_thre = 0.05
 feature_num = 14
-
+control_name = "Control_12"
 def get_binary_code_action(inds):
     code_v = 0
     for i, x in enumerate(inds):
@@ -77,13 +77,13 @@ def visualize_together_wt(data, action_dict, save_path):
         binary_code_data.append(get_binary_code_action(inds))
         binary_code_features.append(binary_code_data)
 
-    with open(save_path / ("effects_binary_codes_with_"+str(feature_num)+"quantile" + str(p_thre)+".csv"), "w") as save_csv:
+    with open(save_path / ("effects_binary_codes_with_"+str(feature_num)+"quantile" + str(p_thre)+control_name+".csv"), "w") as save_csv:
         csv_writer = csv.writer(save_csv)
         csv_writer.writerows(binary_code_features)
 
 if __name__ == "__main__":
     feature_data_by_compound, action_dict_by_compound = load_feature_data_all_by_compound(
-        path=SAVE_FEATURE_PATH / ("all_compounds_"+str(feature_num)+"quantile_feature_fish_with_action.csv"))
+        path=SAVE_FEATURE_PATH / ("all_compounds_" +str(feature_num)+"quantile_feature_fish_with_action_"+control_name+".csv"))
 
     #visualize_separate_wt(feature_data_by_compound)
     print(feature_data_by_compound.keys())

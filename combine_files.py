@@ -35,6 +35,7 @@ RAW_CLASSES = {"Wild type": 0,
                "unknown-likely neurotoxin": 11
                }
 
+control_name= "Control_12" # "all"
 
 def get_key_dict_list(dict_list, value):
     for k, v_list in dict_list.items():
@@ -113,7 +114,7 @@ def combine_file_to(action_path, data_path, save_path):
                 one_comp_data = [comp_name] + reader_to_lines[:, i].tolist() + [action_name] + [action_id]
                 all_control_comp_data.append(one_comp_data)
 
-    with open(save_path + "all_compounds_ori_fish_with_action_wt_separate.csv", "w") as save_csv:
+    with open(save_path + "all_compounds_ori_fish_with_action_wt_"+control_name+".csv", "w") as save_csv:
         csv_writer = csv.writer(save_csv)
         csv_writer.writerows(all_control_comp_data)
 
