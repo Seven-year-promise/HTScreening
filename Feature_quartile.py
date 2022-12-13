@@ -16,7 +16,7 @@ two features :
 #PHASES = [0, 187, 207, 227, 267, 307, 363, 383, 403, 443, 483, -1] # 11 phases
 
 PHASES = [0, 187, 207, 235, 301, 363, 408, -1]
-control_name= "Control_12"
+control_name= "all"
 
 def feature_extract(data):
     features = []
@@ -39,7 +39,7 @@ def extract_feature_to(data_path):
             feature = feature_extract(one_data)
             feature_data = [l[0]] + feature + l[-2:]
             all_data_feature.append(feature_data)
-    with open(SAVE_FEATURE_PATH / ("all_compounds_" +str(len(PHASES)*2-2)+"quantile_feature_fish_with_action_"+control_name+".csv"), "w") as save_csv:
+    with open(SAVE_FEATURE_PATH / ("all_compounds_" +str(len(PHASES)*2-2)+"quartile_feature_fish_with_action_wt_"+control_name+".csv"), "w") as save_csv:
         csv_writer = csv.writer(save_csv)
         csv_writer.writerow(
             ["Compound", "Pre: Q1", "Pre: Q3", "L1: Q1", "L1: Q3", "E1: Q1", "E1: Q3", "E2: Q1", "E2: Q3", "E3: Q1",

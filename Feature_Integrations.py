@@ -14,6 +14,7 @@ integration
 #PHASES = [0, 187, 363, -1]
 
 PHASES = [0, 187, 207, 235, 301, 363, 408, -1]
+control_name = "all"
 
 def intergration(data):
     return np.sum(data)
@@ -53,12 +54,11 @@ def extract_feature_to(data_path):
         feature_data = [cleaned_comp_names[i]] + feature + cleaned_action_infos[i]
         all_data_feature.append(feature_data)
 
-    with open(SAVE_FEATURE_PATH / ("all_compounds_"+str(len(PHASES)-1)+"integration_feature_fish_with_action_wt_separate.csv"), "w") as save_csv:
+    with open(SAVE_FEATURE_PATH / ("all_compounds_"+str(len(PHASES)-1)+"integration_feature_fish_with_action_wt_"+control_name+".csv"), "w") as save_csv:
         csv_writer = csv.writer(save_csv)
-        csv_writer.writerow(
-            ["Compound", "Phase 1", "Phase 2", "Phase 3", "Phase 4", "Phase 5", "Phase 6", "Phase 7", "action_name", "action_id"])
+        csv_writer.writerow(["Feature " + str(x) for x in range(1, len(PHASES))] + ["action_name", "action_id"])
         csv_writer.writerows(all_data_feature)
 
 if __name__ == "__main__":
-    data_path = SAVE_CLEAN_PATH / "all_compounds_ori_fish_with_action_wt_separate.csv"
+    data_path = SAVE_CLEAN_PATH / ("all_compounds_ori_fish_with_action_wt_"+control_name+".csv")
     extract_feature_to(data_path)

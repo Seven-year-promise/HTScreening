@@ -19,7 +19,8 @@ get the binary_code feature with actions
 200:201:202:210:211:212:220:221:222:
 """
 p_thre = 0.05
-feature_num = 3
+feature_num = 7
+control_name = "all"
 
 def get_binary_code_action(inds):
     code_v = 0
@@ -83,7 +84,7 @@ def visualize_together_wt(data, action_dict, save_path):
 
 if __name__ == "__main__":
     feature_data_by_compound, action_dict_by_compound = load_feature_data_all_by_compound(
-        path=SAVE_FEATURE_PATH / ("all_compounds_"+str(feature_num)+"integration_feature_fish_with_action_wt_separate.csv"))
+        path=SAVE_FEATURE_PATH / ("all_compounds_"+str(feature_num)+"integration_feature_fish_with_action_wt_"+control_name+".csv"))
 
     #visualize_separate_wt(feature_data_by_compound)
     print(feature_data_by_compound.keys())

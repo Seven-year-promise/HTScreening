@@ -1,5 +1,6 @@
 import os
 import shutil
+from config import *
 
 def rename_file_to(ori_path, save_path):
     file_names = os.listdir(path=ori_path)
@@ -16,10 +17,10 @@ def rename_file_to(ori_path, save_path):
             else:
                 save_name = "C" + f_n_split[2] + "_50um_" + f_n_split[0] + ".csv"
 
-        shutil.copy(ori_path+f_n, save_path+save_name)
+        shutil.copy(ori_path / f_n, save_path / save_name)
 
 
 if __name__ == "__main__":
-    file_path = "./data/ori/all_data/Compounds/"
-    save_path = "./data/ori/all_data/Compounds_renamed/"
+    file_path = ORI_PATH / "all_data/Compounds/"
+    save_path = SAVE_CLEAN_PATH / "all_data/Compounds_renamed/"
     rename_file_to(file_path, save_path)

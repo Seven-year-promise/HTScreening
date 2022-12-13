@@ -2,6 +2,7 @@ import os
 import shutil
 import csv
 import numpy as np
+from config import *
 
 """
 file_formate:
@@ -35,7 +36,7 @@ RAW_CLASSES = {"Wild type": 0,
                "unknown-likely neurotoxin": 11
                }
 
-control_name= "Control_12" # "all"
+control_name= "all" # ""Control_12
 
 def get_key_dict_list(dict_list, value):
     for k, v_list in dict_list.items():
@@ -69,7 +70,7 @@ def combine_file_to(action_path, data_path, save_path):
     print("compound action modes:", action_with_compounds)
     all_control_comp_data = []
     # read controls
-    control_path = data_path + "Controls/"
+    control_path = data_path / "Controls/"
     control_folders = os.listdir(control_path)
     num_controls = len(control_folders)
     print("number of controls", num_controls)
@@ -80,11 +81,11 @@ def combine_file_to(action_path, data_path, save_path):
             invalid+=1
             continue
         print(c_i)
-        c_folder_path = control_path + c_folder + "/"
+        c_folder_path = control_path / c_folder
         control_files = os.listdir(c_folder_path)
         for c_f in control_files:
-            print(c_folder_path + c_f)
-            with open(c_folder_path + c_f, "r") as control_d_f:
+            print(c_folder_path / c_f)
+            with open(c_folder_path / c_f, "r") as control_d_f:
                 reader_to_lines = []
                 reader = csv.reader(control_d_f, delimiter=",")
                 for j, l in enumerate(reader):
@@ -95,11 +96,11 @@ def combine_file_to(action_path, data_path, save_path):
                     all_control_comp_data.append(one_control_data)
 
     # read compounds
-    comp_path = data_path + "Compounds/"
+    comp_path = data_path / "Compounds/"
     comp_files = os.listdir(comp_path)
     for comp_f in comp_files:
-        print(comp_path + comp_f)
-        with open(comp_path + comp_f, "r") as comp_d_f:
+        print(comp_path / comp_f)
+        with open(comp_path / comp_f, "r") as comp_d_f:
             comp_name = comp_f[:-4].split("_")[0]
             comp_id = int(comp_name[1:])
             comp_name = "C"+str(comp_id)#str(num_controls-1+comp_id)
@@ -114,13 +115,13 @@ def combine_file_to(action_path, data_path, save_path):
                 one_comp_data = [comp_name] + reader_to_lines[:, i].tolist() + [action_name] + [action_id]
                 all_control_comp_data.append(one_comp_data)
 
-    with open(save_path + "all_compounds_ori_fish_with_action_wt_"+control_name+".csv", "w") as save_csv:
+    with open(save_path / ("all_compounds_ori_fish_with_action_wt_"+control_name+".csv"), "w") as save_csv:
         csv_writer = csv.writer(save_csv)
         csv_writer.writerows(all_control_comp_data)
 
 
 if __name__ == "__main__":
     action_path = "./data/OldCompoundsMoA.csv"
-    data_path = "./data/cleaned/all_data/"
-    save_path = "./data/cleaned/"
+    data_path = SAVE_CLEAN_PATH / "all_data/"
+    save_path = SAVE_CLEAN_PATH
     combine_file_to(action_path, data_path, save_path)

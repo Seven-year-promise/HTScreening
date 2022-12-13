@@ -16,7 +16,7 @@ visualize the intergrated feature
 """
 p_thre=0.05
 feature_num = 3
-type = "integration"
+type = "integration" # quartile
 
 
 def map_and_save(path, actions, save_path): # actions format -> dict -> action name: [compound1, compound2] without 'C'

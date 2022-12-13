@@ -15,6 +15,8 @@ from config import *
 visualize the intergrated feature
 """
 p_thre=0.05
+feature_num = 14 #3 # 14
+type = "quartile" #"integration"  #
 
 
 def draw_box_plot_ttest(all_dis, dis_save):
@@ -138,18 +140,30 @@ def save_binary_code_patterns(path, save_path):
             comp_names.append(compound_name)
             actions.append(int(l[-1]))
 
+    comp_action_data_dict = {}
+    for c_name, c_action in zip(comp_names, actions):
+        if c_action not in comp_action_data_dict.keys():
+            comp_action_data_dict[c_action] = []
+        comp_action_data_dict[c_action].append(c_name)
+
     comp_action_data = []
+
+    for c_k in sorted(comp_action_data_dict.keys()):
+        comp_action_data.append([str(c_k)]+comp_action_data_dict[c_k])
+
+    """
     actions = np.array(actions)
     comp_names = np.array(comp_names)
-    print(actions)
-    for i in range(27):
+    #print(actions)
+    for i in range(3**feature_num):
         inds = actions==i
         print(inds)
         action_comp_names = comp_names[inds]
         if 0 < len(action_comp_names):
             comp_action_data.append([str(i)]+list(action_comp_names))
-    print(comp_action_data)
-    with open(save_path / ("action_pattern_with_binary_codes"+str(p_thre)+".csv"), "w") as save_csv:
+    """
+    #print(comp_action_data)
+    with open(save_path / ("action_pattern_with_binary_codes"+str(feature_num)+type+str(p_thre)+".csv"), "w") as save_csv:
         csv_writer = csv.writer(save_csv)
         csv_writer.writerows(comp_action_data)
 
@@ -168,7 +182,7 @@ def save_binary_code_mapping_motion(binary_path, save_path):
     actions = np.array(actions)
     comp_names = np.array(comp_names)
     print(actions)
-    for i in range(27):
+    for i in range(3**feature_num):
         inds = actions==i
         print(inds)
         action_comp_names = comp_names[inds]
@@ -191,5 +205,5 @@ if __name__ == "__main__":
     #    binary_path="/Users/yankeewann/Desktop/HTScreening/data/featured/effects_binary_codes_with_integration.csv",
     #    save_path="/Users/yankeewann/Desktop/HTScreening/data/")
 
-    save_binary_code_patterns(SAVE_FEATURE_PATH / ("effects_binary_codes_with_3integration" + str(p_thre)+".csv"), DATA_PATH)
+    save_binary_code_patterns(SAVE_FEATURE_PATH / ("effects_binary_codes_with_"+str(feature_num)+type + str(p_thre)+".csv"), SAVE_FINAL_RESULT_PATH)
 

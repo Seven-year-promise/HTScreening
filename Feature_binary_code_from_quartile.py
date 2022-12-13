@@ -20,7 +20,8 @@ get the binary_code feature with actions
 """
 p_thre = 0.05
 feature_num = 14
-control_name = "Control_12"
+control_name = "all"
+
 def get_binary_code_action(inds):
     code_v = 0
     for i, x in enumerate(inds):
@@ -83,7 +84,7 @@ def visualize_together_wt(data, action_dict, save_path):
 
 if __name__ == "__main__":
     feature_data_by_compound, action_dict_by_compound = load_feature_data_all_by_compound(
-        path=SAVE_FEATURE_PATH / ("all_compounds_" +str(feature_num)+"quantile_feature_fish_with_action_"+control_name+".csv"))
+        path=SAVE_FEATURE_PATH / ("all_compounds_" +str(feature_num)+"quartile_feature_fish_with_action_wt_"+control_name+".csv"))
 
     #visualize_separate_wt(feature_data_by_compound)
     print(feature_data_by_compound.keys())

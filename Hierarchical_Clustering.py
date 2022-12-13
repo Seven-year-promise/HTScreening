@@ -22,7 +22,7 @@ visualize the intergrated feature
 """
 p_thre=0.05
 feature_num = 3 # 14
-type = "integration"  # "quantile"
+type = "integration"  # "quartile"
 
 def read_binary_code_patterns(path, save_path):
     comp_names = []

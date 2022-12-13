@@ -1,10 +1,13 @@
 from pathlib import Path
 
+MODE = "data/test"
 file_path = Path(__file__).parent
-MODE_OF_ACTION_PATH = file_path / "data/OldCompoundsMoA.csv"
-SAVE_CLEAN_PATH = file_path / "data/cleaned/"
-SAVE_FEATURE_PATH = file_path / "data/featured/"
 
-DATA_PATH = file_path / "data/"
+ORI_PATH = file_path / MODE / "ori/"
+MODE_OF_ACTION_PATH = file_path / MODE / "OldCompoundsMoA.csv"
+SAVE_CLEAN_PATH = file_path / MODE / "cleaned/"
+SAVE_FEATURE_PATH = file_path / MODE / "featured/"
 
-SAVE_FINAL_RESULT_PATH = file_path / "data/final_result/"
+DATA_PATH = file_path / MODE
+
+SAVE_FINAL_RESULT_PATH = file_path / MODE / "final_result/"
