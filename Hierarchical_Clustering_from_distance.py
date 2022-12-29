@@ -20,9 +20,10 @@ from config import *
 """
 visualize the intergrated feature
 """
-p_thre=0.05
-feature_num = 3 # 14
-type = "integration"  # "quartile"
+algorithm = "wasserstein_2"
+feature_num = 14 # 14
+type = "quartile"  # "integration"
+control_name = "all"
 
 def read_binary_code_patterns(path, save_path):
     comp_names = []
@@ -134,8 +135,11 @@ def extract_clustered_table(res, data):
         return data.loc[new_ind, :]
 
 def HI_clustering(path):
-    data = pd.read_csv(path, usecols=["Compound"] + ["Feature " + str(x) for x in range(feature_num)])
+    data = pd.read_csv(path, usecols=["Compound"] + ["Feature " + str(x) for x in range(feature_num)]+["Action"])
+    data['Compound'] += "_" + data['Action']
+
     data.set_index(['Compound'], drop=True, inplace=True)
+    data = data.drop('Action', axis=1)
     data.index.name = None
 
     #fig = plt.figure(figsize=(15, 20))
@@ -148,7 +152,7 @@ def HI_clustering(path):
     heatmap.ax_heatmap.set_title("Hierarchical Clustering(ward)", fontsize=20)
     #plt.show()
     plt.setp(heatmap.ax_heatmap.get_yticklabels(), rotation=0)
-    plt.savefig(SAVE_FINAL_RESULT_PATH / ("hierarchical_clustering_with_"+str(feature_num) + type+"_binary_codes_p" + str(p_thre) + ".png"), dpi=300)
+    plt.savefig(SAVE_FINAL_RESULT_PATH / ("hierarchical_clustering_with_"+str(feature_num) + type+"_distance_" + control_name+ ".png"), dpi=300)
 
 
 
@@ -171,5 +175,5 @@ if __name__ == "__main__":
     #    save_path="/Users/yankeewann/Desktop/HTScreening/data/")
 
     #comp_names, data = read_binary_code_patterns(SAVE_FEATURE_PATH / ("effects_binary_codes_with_integration" + str(p_thre)+".csv"), DATA_PATH)
-    HI_clustering(SAVE_FEATURE_PATH / ("effects_binary_codes_with_"+str(feature_num)+type + str(p_thre)+".csv"))
+    HI_clustering(SAVE_FEATURE_PATH / ("effects_distance_with_"+str(feature_num)+type+"_"+algorithm+"_"+control_name+".csv"))
 

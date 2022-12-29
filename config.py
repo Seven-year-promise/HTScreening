@@ -1,6 +1,6 @@
 from pathlib import Path
 
-MODE = "data/test"
+MODE = "data/train"
 file_path = Path(__file__).parent
 
 ORI_PATH = file_path / MODE / "ori/"

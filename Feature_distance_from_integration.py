@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 from scipy.stats import ttest_ind
 from config import *
+from Methods.Distance.distribution_distance import compute_prob_distance
 
 """
 0: no effected
@@ -18,7 +19,7 @@ get the binary_code feature with actions
 100:101:102:110:111:112:120:121:122:
 200:201:202:210:211:212:220:221:222:
 """
-p_thre = 0.05
+algorithm = "wasserstein_2" # hellinger, wasserstein
 feature_num = 7
 control_name = "all"
 
@@ -55,31 +56,18 @@ def visualize_together_wt(data, action_dict, save_path):
 
     for n, (b_d, b_l) in enumerate(zip(box_data, box_labels)):
         b_d = np.array(b_d)
-        binary_code_data = [b_l]
+        distance_data = [b_l]
 
-        inds = []
         for ph in range(feature_num):
-            F, p = ttest_ind(WILD_inte[:, ph], b_d[:,ph], equal_var=False)
-            if p < p_thre:
-                if np.mean(WILD_inte[:, ph]) > np.mean(b_d[:,ph]):
-                    inds.append(1)
-                    binary_code_data.append(1)
-                else:
-                    inds.append(2)
-                    binary_code_data.append(2)
-            else:
-                inds.append(0)
-                binary_code_data.append(0)
+            dis = compute_prob_distance(WILD_inte[:, ph], b_d[:,ph], algorithm=algorithm)
+            #print(dis)
+            distance_data.append(dis)
 
-        code_str = ""
-        for x in inds:
-            code_str += str(x)
         #binary_code_data.append(code_str)
-        binary_code_data.append(action_dict[b_l][0])
-        binary_code_data.append(get_binary_code_action(inds))
-        binary_code_features.append(binary_code_data)
+        distance_data.append(action_dict[b_l][0])
+        binary_code_features.append(distance_data)
 
-    with open(save_path / ("effects_binary_codes_with_"+str(feature_num)+"integration" + str(p_thre)+control_name+".csv"), "w") as save_csv:
+    with open(save_path / ("effects_distance_with_"+str(feature_num)+"integration_" +algorithm + "_" +control_name+".csv"), "w") as save_csv:
         csv_writer = csv.writer(save_csv)
         csv_writer.writerows(binary_code_features)
 
