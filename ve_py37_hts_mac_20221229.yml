@@ -1,0 +1,37 @@
+{
+  "channels": [
+    "defaults"
+  ],
+  "dependencies": [
+    "qimage2ndarray",
+    "sympy",
+    "opencv",
+    "pyqt",
+    "numpy",
+    "ipython",
+    "pandas",
+    "python=3.7",
+    "torchvision",
+    "tifffile",
+    "qt",
+    "tensorboardx",
+    "pip",
+    "tikzplotlib",
+    "mahotas",
+    "graphviz",
+    "pytorch=1.4",
+    "scipy",
+    "imgaug",
+    "scikit-image",
+    "pytest",
+    "pillow",
+    "pydot",
+    "matplotlib",
+    "python-graphviz",
+    "shapely",
+    "cython",
+    "imageio"
+  ],
+  "name": "ve_py37_hts_mac_20221229",
+  "prefix": "ve_py37_hts_mac_20221229"
+}

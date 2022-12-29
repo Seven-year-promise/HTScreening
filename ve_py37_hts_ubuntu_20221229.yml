@@ -1,0 +1,39 @@
+{
+  "channels": [
+    "defaults"
+  ],
+  "dependencies": [
+    "qimage2ndarray",
+    "sympy",
+    "opencv",
+    "pyqt",
+    "numpy",
+    "ipython",
+    "pandas",
+    "python=3.7",
+    "torchvision",
+    "cudnn",
+    "tifffile",
+    "qt",
+    "tensorboardx",
+    "pip",
+    "tikzplotlib",
+    "mahotas",
+    "graphviz",
+    "pytorch=1.4",
+    "scipy",
+    "imgaug",
+    "scikit-image",
+    "pytest",
+    "pillow",
+    "pydot",
+    "matplotlib",
+    "python-graphviz",
+    "shapely",
+    "cython",
+    "cudatoolkit=10.1",
+    "imageio"
+  ],
+  "name": "/srv/yanke/ve_py37_hts_ubuntu_20221229",
+  "prefix": "/srv/yanke/ve_py37_hts_ubuntu_20221229"
+}
