@@ -21,8 +21,8 @@ from config import *
 visualize the intergrated feature
 """
 algorithm = "wasserstein_2"
-feature_num = 14 # 14
-type = "quartile"  # "integration"
+feature_num = 7 # 14
+type = "integration"  # "integration"
 control_name = "all"
 
 def read_binary_code_patterns(path, save_path):
