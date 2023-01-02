@@ -138,6 +138,14 @@ def HI_clustering(path):
     data = pd.read_csv(path, usecols=["Compound"] + ["Feature " + str(x) for x in range(feature_num)]+["Action"])
     data['Compound'] += "_" + data['Action']
 
+    # normalize
+    for f_name in data.columns[1:-1]:
+        print(f_name)
+        max_value = data[f_name].max()
+        min_value = data[f_name].min()
+        data[f_name] = (data[f_name] - min_value) / (max_value - min_value)
+        data[f_name] = data[f_name] * 2 - 1
+
     data.set_index(['Compound'], drop=True, inplace=True)
     data = data.drop('Action', axis=1)
     data.index.name = None
@@ -145,7 +153,7 @@ def HI_clustering(path):
     #fig = plt.figure(figsize=(15, 20))
     heatmap = sns.clustermap(data=data, method='ward', metric='euclidean',
                              row_cluster=True, col_cluster=None, cmap="coolwarm",
-                             vmin=0, vmax=2, figsize=(15, 55))
+                             vmin=-1, vmax=1, figsize=(15, 55))
     ordered_data = extract_clustered_table(heatmap, data)
 
     heatmap.fig.suptitle("Hierarchy Clustering", fontsize=20)
