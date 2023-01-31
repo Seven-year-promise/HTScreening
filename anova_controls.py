@@ -68,18 +68,19 @@ def anova(data={}) -> np.array:
         for j in list(anova_metrix[0, 1:]):
             control_b = data["Control_" + str(int(j))]
             print(i, j)
-            res = pg.multivariate_ttest(control_a, Y=control_b)
+            res = pg.multivariate_ttest(control_a, Y=control_a)
             print(res)
             break
+        break
 
-def combine_file_to(action_path, data_path, save_path):
+def compare_controls_to(action_path, data_path, save_path):
     # read action names
     all_control_data = {}
     # read controls
     control_path = data_path / "Controls/"
     control_folders = os.listdir(control_path)
     num_controls = len(control_folders)
-    print("number of controls", num_controls)
+
     invalid = 0
     for c_i, c_folder in enumerate(control_folders):
         if c_folder[0] == ".":
@@ -99,8 +100,8 @@ def combine_file_to(action_path, data_path, save_path):
                 reader_to_lines = np.array(reader_to_lines)
                 for i in range(reader_to_lines.shape[1]):
                     all_control_data[c_folder].append(reader_to_lines[:, i].tolist())
-
-    manova(all_control_data)
+    print("number of controls", num_controls)
+    anova(all_control_data)
     """
     with open(save_path / ("controls_"+control_name+".csv"), "w") as save_csv:
         writer = csv.writer(save_csv)
@@ -112,6 +113,6 @@ def combine_file_to(action_path, data_path, save_path):
 
 if __name__ == "__main__":
     action_path = "./data/OldCompoundsMoA.csv"
-    data_path = SAVE_CLEAN_PATH / "all_data/"
-    save_path = SAVE_FINAL_RESULT_PATH
-    combine_file_to(action_path, data_path, save_path)
+    data_path = TRAIN_SAVE_CLEAN_PATH / "all_data/"
+    save_path = TRAIN_SAVE_FINAL_RESULT_PATH
+    compare_controls_to(action_path, data_path, save_path)

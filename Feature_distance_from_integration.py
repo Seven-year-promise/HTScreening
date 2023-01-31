@@ -73,9 +73,9 @@ def visualize_together_wt(data, action_dict, save_path):
 
 if __name__ == "__main__":
     feature_data_by_compound, action_dict_by_compound = load_feature_data_all_by_compound(
-        path=SAVE_FEATURE_PATH / ("all_compounds_"+str(feature_num)+"integration_feature_fish_with_action_wt_"+control_name+".csv"))
+        path=TEST_SAVE_FEATURE_PATH / ("all_compounds_"+str(feature_num)+"integration_feature_fish_with_action_wt_"+control_name+".csv"))
 
     #visualize_separate_wt(feature_data_by_compound)
     print(feature_data_by_compound.keys())
-    visualize_together_wt(feature_data_by_compound, action_dict_by_compound, SAVE_FEATURE_PATH)
+    visualize_together_wt(feature_data_by_compound, action_dict_by_compound, TEST_SAVE_FEATURE_PATH)
     #mean_distance_with_PCA_visualize(data, labels)
