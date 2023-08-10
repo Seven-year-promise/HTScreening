@@ -97,11 +97,11 @@ def combine_file_to(action_path, data_path, save_path):
 
     # read compounds
     comp_path = data_path / "Compounds/"
-    comp_files = os.listdir(comp_path)
+    comp_files = comp_path.rglob("*.csv") #os.listdir(comp_path)
     for comp_f in comp_files:
-        print(comp_path / comp_f)
-        with open(comp_path / comp_f, "r") as comp_d_f:
-            comp_name = comp_f[:-4].split("_")[0]
+        print(comp_f)
+        with open(comp_f, "r") as comp_d_f:
+            comp_name = comp_f.name[:-4].split("_")[0]
             comp_id = int(comp_name[1:])
             comp_name = "C"+str(comp_id)#str(num_controls-1+comp_id)
             reader_to_lines = []
@@ -122,6 +122,6 @@ def combine_file_to(action_path, data_path, save_path):
 
 if __name__ == "__main__":
     action_path = "./data/OldCompoundsMoA.csv"
-    data_path = SAVE_CLEAN_PATH / "all_data/"
-    save_path = SAVE_CLEAN_PATH
+    data_path = TEST_SAVE_CLEAN_PATH / "all_data/"
+    save_path = TEST_SAVE_CLEAN_PATH
     combine_file_to(action_path, data_path, save_path)

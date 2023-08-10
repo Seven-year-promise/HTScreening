@@ -54,11 +54,11 @@ def extract_feature_to(data_path):
         feature_data = [cleaned_comp_names[i]] + feature + cleaned_action_infos[i]
         all_data_feature.append(feature_data)
 
-    with open(SAVE_FEATURE_PATH / ("all_compounds_"+str(len(PHASES)-1)+"integration_feature_fish_with_action_wt_"+control_name+".csv"), "w") as save_csv:
+    with open(TEST_SAVE_FEATURE_PATH / ("all_compounds_"+str(len(PHASES)-1)+"integration_feature_fish_with_action_wt_"+control_name+".csv"), "w") as save_csv:
         csv_writer = csv.writer(save_csv)
         csv_writer.writerow(["Feature " + str(x) for x in range(1, len(PHASES))] + ["action_name", "action_id"])
         csv_writer.writerows(all_data_feature)
 
 if __name__ == "__main__":
-    data_path = SAVE_CLEAN_PATH / ("all_compounds_ori_fish_with_action_wt_"+control_name+".csv")
+    data_path = TEST_SAVE_CLEAN_PATH / ("all_compounds_ori_fish_with_action_wt_"+control_name+".csv")
     extract_feature_to(data_path)

@@ -21,6 +21,6 @@ def rename_file_to(ori_path, save_path):
 
 
 if __name__ == "__main__":
-    file_path = ORI_PATH / "all_data/Compounds/"
-    save_path = SAVE_CLEAN_PATH / "all_data/Compounds_renamed/"
+    file_path = TEST_ORI_PATH / "all_data/Compounds/"
+    save_path = TEST_ORI_PATH / "all_data/Compounds_renamed/"
     rename_file_to(file_path, save_path)

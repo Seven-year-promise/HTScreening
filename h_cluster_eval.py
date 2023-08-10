@@ -86,7 +86,7 @@ def load_train_model(link_path, data_path, test_data_path, thre_intervel=100):
     #test_data.index.name = None
 
     for thre in range(thre_intervel+1):
-        thre = 10
+        thre = 5
         t = thre/thre_intervel*max_eucli_dis
 
         #print(new_data, new_data.index)
@@ -99,10 +99,17 @@ def load_train_model(link_path, data_path, test_data_path, thre_intervel=100):
             dis = (data - list(test_d)).pow(2).sum(1).pow(0.5)
             cloest_comp = dis.idxmin()
             preds = prediction_effects(compound_list=B['ivl'], labels=B['leaves_color_list'], cloest_comp=cloest_comp)
-            predictions.append(preds)
+            predictions.append([index] + preds)
 
         #print(predictions)
+        plt.axhline(y=t, c='red', lw=1, linestyle='dashed')
         plt.show()
+
+        with open(TEST_SAVE_FINAL_RESULT_PATH / (
+                "effects_prediction_with_" + str(feature_num) + "integration_" + algorithm + "_" + control_name + ".csv"),
+                  "w") as save_csv:
+            csv_writer = csv.writer(save_csv)
+            csv_writer.writerows(predictions)
 
         """
         for i in test_names:
