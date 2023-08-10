@@ -18,5 +18,5 @@ trinary codes:
 
 ## How to use this code
 
-pipeline:
-rename --> data_clean --> combine_files --> FT_feature_select or Feature Integrations --> Feature_binary_coe_from_quantile or from integration
+- Install the environment according to environment.yml
+- Pipeline: rename --> data_clean --> combine_files --> FT_feature_select or Feature Integrations --> Feature_binary_coe_from_quantile or from integration
